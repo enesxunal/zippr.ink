@@ -3,6 +3,7 @@ import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import { Header } from "@/components/layout/header";
+import type { UserRole } from "@/types/database";
 import { createClient } from "@/lib/supabase/server";
 import "../globals.css";
 
@@ -38,7 +39,7 @@ export default async function LocaleLayout({
         .from("profiles")
         .select("email, role")
         .eq("id", user.id)
-        .single();
+        .single<{ email: string; role: UserRole }>();
       headerUser = {
         email: profile?.email || user.email || "",
         role: profile?.role,

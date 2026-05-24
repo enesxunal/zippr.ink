@@ -81,8 +81,12 @@ export function UploadDropzone() {
 
       if (isImage && (compress || format !== "webp")) {
         setProgress(25);
-        const buffer = await file.arrayBuffer();
-        const base64 = Buffer.from(buffer).toString("base64");
+        const bytes = new Uint8Array(await file.arrayBuffer());
+        let binary = "";
+        for (let i = 0; i < bytes.length; i++) {
+          binary += String.fromCharCode(bytes[i]);
+        }
+        const base64 = btoa(binary);
 
         const transformRes = await fetch("/api/transform", {
           method: "POST",
@@ -97,10 +101,10 @@ export function UploadDropzone() {
 
         if (!transformRes.ok) throw new Error("transform failed");
         const transformed = await transformRes.json();
-        const binary = Uint8Array.from(atob(transformed.data), (c) => c.charCodeAt(0));
+        const outputBytes = Uint8Array.from(atob(transformed.data), (c) => c.charCodeAt(0));
         const ext = format === "jpeg" ? "jpg" : format;
         const newName = customName.replace(/\.[^.]+$/, "") + "." + ext;
-        uploadFile = new File([binary], newName, { type: transformed.mimeType });
+        uploadFile = new File([outputBytes], newName, { type: transformed.mimeType });
         mimeType = transformed.mimeType;
         fileSize = transformed.size;
       }
@@ -191,7 +195,7 @@ export function UploadDropzone() {
     );
   }
 
-  if (step === "configure" && file) {
+  if ((step === "configure" || step === "uploading") && file) {
     return (
       <Card className="mx-auto max-w-xl">
         <CardContent className="space-y-5 p-6">

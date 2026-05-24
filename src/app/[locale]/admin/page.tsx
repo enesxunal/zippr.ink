@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { AdminUserActions } from "@/components/admin/admin-user-actions";
 import { AdminQuoteActions } from "@/components/admin/admin-quote-actions";
 import { AdminTicketActions } from "@/components/admin/admin-ticket-actions";
+import type { UserRole } from "@/types/database";
 import {
   Users,
   Euro,
@@ -39,7 +40,7 @@ export default async function AdminPage() {
     .from("profiles")
     .select("role")
     .eq("id", user.id)
-    .single();
+    .single<{ role: UserRole }>();
 
   if (profile?.role !== "super_admin") redirect("/dashboard");
 
