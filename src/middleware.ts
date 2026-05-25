@@ -64,6 +64,15 @@ export async function middleware(request: NextRequest) {
   }
 
   const intlResponse = intlMiddleware(request);
+  const pathWithoutLocale = getPathWithoutLocale(pathname);
+
+  // OAuth dönüşü: middleware Supabase çağırmasın (PKCE / cookie bozulmasın, 502 önlenir)
+  if (
+    pathWithoutLocale === "/auth/callback" ||
+    pathWithoutLocale.startsWith("/auth/callback/")
+  ) {
+    return intlResponse;
+  }
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -92,7 +101,6 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const pathWithoutLocale = getPathWithoutLocale(pathname);
   const locale = getLocaleFromPath(pathname);
 
   const isAdminLogin = pathWithoutLocale === "/admin/login";
