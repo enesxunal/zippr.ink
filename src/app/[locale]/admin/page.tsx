@@ -17,7 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { AdminUserActions } from "@/components/admin/admin-user-actions";
 import { AdminQuoteActions } from "@/components/admin/admin-quote-actions";
 import { AdminTicketActions } from "@/components/admin/admin-ticket-actions";
-import type { UserRole } from "@/types/database";
+import { isSuperAdmin } from "@/lib/admin-access";
 import {
   Users,
   Euro,
@@ -39,13 +39,8 @@ export default async function AdminPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/admin/login");
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single<{ role: UserRole }>();
-
-  if (profile?.role !== "super_admin") redirect("/dashboard");
+  const allowed = await isSuperAdmin(user.id, user.email);
+  if (!allowed) redirect("/dashboard");
 
   const admin = createServiceClient();
 

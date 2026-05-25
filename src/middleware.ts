@@ -2,6 +2,7 @@ import createMiddleware from "next-intl/middleware";
 import { type NextRequest, NextResponse } from "next/server";
 import { routing } from "./i18n/routing";
 import { createServerClient } from "@supabase/ssr";
+import { isSuperAdmin } from "./lib/admin-access";
 
 const intlMiddleware = createMiddleware(routing);
 
@@ -104,18 +105,11 @@ export async function middleware(request: NextRequest) {
   );
 
   if (isAdminLogin) {
-    if (user) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
-        .single();
-      if (profile?.role === "super_admin") {
-        const url = request.nextUrl.clone();
-        url.pathname =
-          locale === routing.defaultLocale ? "/admin" : `/${locale}/admin`;
-        return NextResponse.redirect(url);
-      }
+    if (user && (await isSuperAdmin(user.id, user.email))) {
+      const url = request.nextUrl.clone();
+      url.pathname =
+        locale === routing.defaultLocale ? "/admin" : `/${locale}/admin`;
+      return NextResponse.redirect(url);
     }
     return supabaseResponse;
   }
@@ -132,12 +126,7 @@ export async function middleware(request: NextRequest) {
     user &&
     (pathWithoutLocale === "/dashboard" || pathWithoutLocale.startsWith("/dashboard/"))
   ) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-    if (profile?.role === "super_admin") {
+    if (await isSuperAdmin(user.id, user.email)) {
       const url = request.nextUrl.clone();
       url.pathname =
         locale === routing.defaultLocale ? "/admin" : `/${locale}/admin`;
@@ -155,13 +144,8 @@ export async function middleware(request: NextRequest) {
   }
 
   if (isAdminPanel && user) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-
-    if (profile?.role !== "super_admin") {
+    const allowed = await isSuperAdmin(user.id, user.email);
+    if (!allowed) {
       const url = request.nextUrl.clone();
       url.pathname =
         locale === routing.defaultLocale ? "/dashboard" : `/${locale}/dashboard`;

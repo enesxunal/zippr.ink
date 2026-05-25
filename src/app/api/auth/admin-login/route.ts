@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
-import { createServiceClient } from "@/lib/supabase/admin";
-
-const ADMIN_EMAIL = "admin@zippr.ink";
+import { isSuperAdmin } from "@/lib/admin-access";
 
 export async function POST(request: NextRequest) {
   try {
@@ -53,34 +51,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "auth_failed" }, { status: 401 });
     }
 
-    const admin = createServiceClient();
-    let { data: profile } = await admin
-      .from("profiles")
-      .select("role")
-      .eq("id", userId)
-      .maybeSingle();
-
-    if (!profile && email === ADMIN_EMAIL) {
-      await admin.from("profiles").upsert(
-        {
-          id: userId,
-          email: ADMIN_EMAIL,
-          full_name: "Admin",
-          role: "super_admin",
-          plan_type: "professional",
-          storage_limit: 1099511627776,
-        },
-        { onConflict: "id" }
-      );
-      profile = { role: "super_admin" as const };
-    }
-
-    if (email === ADMIN_EMAIL && profile?.role !== "super_admin") {
-      await admin.from("profiles").update({ role: "super_admin" }).eq("id", userId);
-      profile = { role: "super_admin" as const };
-    }
-
-    if (profile?.role !== "super_admin") {
+    const allowed = await isSuperAdmin(userId, email);
+    if (!allowed) {
       await supabase.auth.signOut();
       return NextResponse.json({ error: "not_authorized" }, { status: 403 });
     }

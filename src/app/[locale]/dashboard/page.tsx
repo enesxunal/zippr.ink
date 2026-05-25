@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/admin";
 import { routing } from "@/i18n/routing";
-import type { UserRole } from "@/types/database";
+import { isSuperAdmin } from "@/lib/admin-access";
 import { formatBytes } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,7 +35,7 @@ export default async function DashboardPage({
     .eq("id", user.id)
     .single();
 
-  if ((profile?.role as UserRole | undefined) === "super_admin") {
+  if (await isSuperAdmin(user.id, user.email)) {
     redirect(locale === routing.defaultLocale ? "/admin" : `/${locale}/admin`);
   }
 

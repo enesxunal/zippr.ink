@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { routing } from "@/i18n/routing";
+import { isSuperAdmin } from "@/lib/admin-access";
 
 export async function handleAuthCallback(request: NextRequest, locale: string) {
   const url = new URL(request.url);
@@ -45,17 +46,10 @@ export async function handleAuthCallback(request: NextRequest, locale: string) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (user) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-    if (profile?.role === "super_admin") {
-      const adminPath =
-        locale === routing.defaultLocale ? "/admin" : `/${locale}/admin`;
-      return NextResponse.redirect(new URL(adminPath, url.origin));
-    }
+  if (user && (await isSuperAdmin(user.id, user.email))) {
+    const adminPath =
+      locale === routing.defaultLocale ? "/admin" : `/${locale}/admin`;
+    return NextResponse.redirect(new URL(adminPath, url.origin));
   }
 
   return response;

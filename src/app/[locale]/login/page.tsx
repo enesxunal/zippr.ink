@@ -11,7 +11,6 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ZipprLogo } from "@/components/brand/zippr-logo";
 import { routing } from "@/i18n/routing";
-import type { UserRole } from "@/types/database";
 
 export default function LoginPage() {
   const t = useTranslations("auth");
@@ -37,12 +36,14 @@ export default function LoginPage() {
       locale === routing.defaultLocale ? "/dashboard" : `/${locale}/dashboard`;
     const adminPath =
       locale === routing.defaultLocale ? "/admin" : `/${locale}/admin`;
-    if (data.user) {
+    if (data.user?.email?.trim().toLowerCase() === "admin@zippr.ink") {
+      window.location.href = adminPath;
+    } else if (data.user) {
       const { data: profile } = await supabase
         .from("profiles")
         .select("role")
         .eq("id", data.user.id)
-        .single<{ role: UserRole }>();
+        .single<{ role: "user" | "super_admin" }>();
       window.location.href =
         profile?.role === "super_admin" ? adminPath : dashboardPath;
     } else {
