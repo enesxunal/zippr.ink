@@ -20,7 +20,11 @@ echo "[deploy] pm2 durdur ve sil (eski chunk cache temizlenir) ..."
 pm2 delete "$PM2_NAME" 2>/dev/null || true
 
 echo "[deploy] npm install ..."
-npm ci
+if ! npm ci; then
+  echo "[deploy] npm ci başarısız (ENOTEMPTY vb.) — node_modules silinip yeniden deneniyor ..."
+  rm -rf node_modules
+  npm ci
+fi
 
 echo "[deploy] temiz build (.next + cache siliniyor) ..."
 rm -rf .next node_modules/.cache
