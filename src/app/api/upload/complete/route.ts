@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/admin";
+import { getUserIdFromRequest } from "@/lib/auth-api";
 import { getPublicFileUrl } from "@/lib/utils";
 
 export async function POST(request: NextRequest) {
@@ -11,6 +12,7 @@ export async function POST(request: NextRequest) {
     }
 
     const admin = createServiceClient();
+    const userId = await getUserIdFromRequest(request);
 
     const { data: file, error } = await admin
       .from("files")
@@ -22,11 +24,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "File not found" }, { status: 404 });
     }
 
-    if (file.user_id) {
+    if (userId) {
+      await admin.from("files").update({ user_id: userId }).eq("id", fileId);
+      file.user_id = userId;
+    }
+
+    const ownerId = file.user_id || userId;
+
+    if (ownerId) {
       const { data: profile } = await admin
         .from("profiles")
         .select("storage_used")
-        .eq("id", file.user_id)
+        .eq("id", ownerId)
         .single();
 
       if (profile) {
@@ -35,7 +44,7 @@ export async function POST(request: NextRequest) {
           .update({
             storage_used: Number(profile.storage_used) + Number(file.file_size),
           })
-          .eq("id", file.user_id);
+          .eq("id", ownerId);
       }
     }
 

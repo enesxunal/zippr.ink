@@ -1,26 +1,21 @@
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
-import { formatBytes, formatDate, getPublicFileUrl } from "@/lib/utils";
+import { createServiceClient } from "@/lib/supabase/admin";
+import { formatBytes } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { FileActions } from "@/components/dashboard/file-actions";
+import { FilesTable } from "@/components/dashboard/files-table";
 import { Link } from "@/i18n/routing";
 import { Button } from "@/components/ui/button";
+import { LogoutButton } from "@/components/auth/logout-button";
+import { ClaimRecentUpload } from "@/components/dashboard/claim-recent-upload";
+import { LinkSlugToAccount } from "@/components/dashboard/link-slug-to-account";
+import { ZipprLogo } from "@/components/brand/zippr-logo";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
   const t = await getTranslations("dashboard");
-  const tc = await getTranslations("common");
 
   const {
     data: { user },
@@ -33,7 +28,8 @@ export default async function DashboardPage() {
     .eq("id", user.id)
     .single();
 
-  const { data: files } = await supabase
+  const admin = createServiceClient();
+  const { data: files } = await admin
     .from("files")
     .select("*")
     .eq("user_id", user.id)
@@ -46,11 +42,19 @@ export default async function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
+      <ClaimRecentUpload />
+      <LinkSlugToAccount />
       <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold">{t("title")}</h1>
-        <Link href="/pricing">
-          <Button variant="outline">{t("upgradePlan")}</Button>
-        </Link>
+        <div className="flex items-center gap-4">
+          <ZipprLogo size="sm" linked />
+          <h1 className="text-2xl font-bold">{t("title")}</h1>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Link href="/pricing">
+            <Button variant="outline">{t("upgradePlan")}</Button>
+          </Link>
+          <LogoutButton />
+        </div>
       </div>
 
       <div className="mb-8 grid gap-6 md:grid-cols-3">
@@ -88,65 +92,7 @@ export default async function DashboardPage() {
           {!files?.length ? (
             <p className="p-6 text-white/50">{t("noFiles")}</p>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{tc("fileName")}</TableHead>
-                  <TableHead>Link</TableHead>
-                  <TableHead>Size</TableHead>
-                  <TableHead>{t("clicks")}</TableHead>
-                  <TableHead>{t("downloads")}</TableHead>
-                  <TableHead>{tc("status")}</TableHead>
-                  <TableHead>{tc("actions")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {files.map((file) => (
-                  <TableRow key={file.id}>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium">{file.custom_name}</p>
-                        <p className="text-xs text-white/40">{file.original_name}</p>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <a
-                        href={getPublicFileUrl(file.slug)}
-                        className="text-violet-light hover:underline"
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        /{file.slug}
-                      </a>
-                    </TableCell>
-                    <TableCell>{formatBytes(file.file_size)}</TableCell>
-                    <TableCell>{file.click_count}</TableCell>
-                    <TableCell>{file.download_count}</TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          file.status === "active"
-                            ? "success"
-                            : file.status === "expired"
-                              ? "warning"
-                              : "destructive"
-                        }
-                      >
-                        {tc(file.status as "active" | "expired" | "deleted")}
-                      </Badge>
-                      {file.expires_at && (
-                        <p className="mt-1 text-xs text-white/40">
-                          {formatDate(file.expires_at)}
-                        </p>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <FileActions slug={file.slug} shareUrl={getPublicFileUrl(file.slug)} />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <FilesTable files={files} />
           )}
         </CardContent>
       </Card>

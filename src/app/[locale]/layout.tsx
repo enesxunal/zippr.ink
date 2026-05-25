@@ -3,9 +3,9 @@ import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import { Header } from "@/components/layout/header";
+import { Footer } from "@/components/layout/footer";
 import type { UserRole } from "@/types/database";
 import { createClient } from "@/lib/supabase/server";
-import "../globals.css";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -50,13 +50,12 @@ export default async function LocaleLayout({
   }
 
   return (
-    <html lang={locale} className="dark">
-      <body className="min-h-screen bg-black antialiased">
-        <NextIntlClientProvider messages={messages}>
-          <Header user={headerUser} />
-          <main>{children}</main>
-        </NextIntlClientProvider>
-      </body>
-    </html>
+    <NextIntlClientProvider locale={locale} messages={messages}>
+      <Header user={headerUser} />
+      <div className="flex min-h-screen flex-col">
+        <main className="flex-1">{children}</main>
+        <Footer />
+      </div>
+    </NextIntlClientProvider>
   );
 }

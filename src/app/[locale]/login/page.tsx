@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
+import { getAuthCallbackUrl } from "@/lib/auth-redirect";
 import { Link } from "@/i18n/routing";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ import { ZipprLogo } from "@/components/brand/zippr-logo";
 export default function LoginPage() {
   const t = useTranslations("auth");
   const tc = useTranslations("common");
+  const locale = useLocale();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -33,7 +35,7 @@ export default function LoginPage() {
     const supabase = createClient();
     await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: { redirectTo: getAuthCallbackUrl(window.location.origin, locale) },
     });
   }
 
@@ -41,7 +43,7 @@ export default function LoginPage() {
     <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <ZipprLogo className="mx-auto mb-2 text-3xl" />
+          <ZipprLogo size="lg" className="mx-auto mb-4" linked />
           <CardTitle>{t("signIn")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">

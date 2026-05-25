@@ -19,6 +19,7 @@ export default function PricingPage() {
     const res = await fetch("/api/payments/tosla/checkout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body: JSON.stringify({ planType: plan }),
     });
     const data = await res.json();

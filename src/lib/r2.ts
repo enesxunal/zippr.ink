@@ -68,6 +68,23 @@ export async function getPresignedDownloadUrl(
   return getSignedUrl(client, command, { expiresIn });
 }
 
+/** Server-side upload (bypasses browser CORS to R2) */
+export async function uploadBufferToR2(
+  key: string,
+  body: Buffer,
+  contentType: string
+): Promise<void> {
+  const client = getR2Client();
+  await client.send(
+    new PutObjectCommand({
+      Bucket: getBucketName(),
+      Key: key,
+      Body: body,
+      ContentType: contentType || "application/octet-stream",
+    })
+  );
+}
+
 export async function deleteFromR2(key: string): Promise<void> {
   const client = getR2Client();
   await client.send(

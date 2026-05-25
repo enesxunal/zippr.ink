@@ -16,11 +16,11 @@ const reserved = [
   "settings",
   "support",
   "share",
+  "tools",
   "api",
 ];
 
-const protectedRoutes = ["/dashboard", "/admin", "/settings"];
-const adminRoutes = ["/admin"];
+const protectedRoutes = ["/dashboard", "/settings"];
 
 function getPathWithoutLocale(pathname: string) {
   const segments = pathname.split("/").filter(Boolean);
@@ -51,8 +51,13 @@ export async function middleware(request: NextRequest) {
   if (slugMatch) {
     const slug = slugMatch[1];
     if (!reserved.includes(slug) && !routing.locales.includes(slug as "de" | "en" | "tr")) {
+      const cookieLocale = request.cookies.get("NEXT_LOCALE")?.value;
+      const locale =
+        cookieLocale && routing.locales.includes(cookieLocale as "de" | "en" | "tr")
+          ? cookieLocale
+          : routing.defaultLocale;
       const url = request.nextUrl.clone();
-      url.pathname = `/de/share/${slug}`;
+      url.pathname = `/${locale}/share/${slug}`;
       return NextResponse.rewrite(url);
     }
   }
@@ -87,23 +92,51 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const pathWithoutLocale = getPathWithoutLocale(pathname);
+  const locale = getLocaleFromPath(pathname);
+
+  const isAdminLogin = pathWithoutLocale === "/admin/login";
+  const isAdminPanel =
+    pathWithoutLocale === "/admin" ||
+    (pathWithoutLocale.startsWith("/admin/") && !isAdminLogin);
 
   const isProtected = protectedRoutes.some(
     (r) => pathWithoutLocale === r || pathWithoutLocale.startsWith(r + "/")
   );
-  const isAdmin = adminRoutes.some(
-    (r) => pathWithoutLocale === r || pathWithoutLocale.startsWith(r + "/")
-  );
+
+  if (isAdminLogin) {
+    if (user) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+      if (profile?.role === "super_admin") {
+        const url = request.nextUrl.clone();
+        url.pathname =
+          locale === routing.defaultLocale ? "/admin" : `/${locale}/admin`;
+        return NextResponse.redirect(url);
+      }
+    }
+    return supabaseResponse;
+  }
 
   if (isProtected && !user) {
-    const locale = getLocaleFromPath(pathname);
     const url = request.nextUrl.clone();
     url.pathname =
       locale === routing.defaultLocale ? "/login" : `/${locale}/login`;
     return NextResponse.redirect(url);
   }
 
-  if (isAdmin && user) {
+  if (isAdminPanel && !user) {
+    const url = request.nextUrl.clone();
+    url.pathname =
+      locale === routing.defaultLocale
+        ? "/admin/login"
+        : `/${locale}/admin/login`;
+    return NextResponse.redirect(url);
+  }
+
+  if (isAdminPanel && user) {
     const { data: profile } = await supabase
       .from("profiles")
       .select("role")
@@ -111,7 +144,6 @@ export async function middleware(request: NextRequest) {
       .single();
 
     if (profile?.role !== "super_admin") {
-      const locale = getLocaleFromPath(pathname);
       const url = request.nextUrl.clone();
       url.pathname =
         locale === routing.defaultLocale ? "/dashboard" : `/${locale}/dashboard`;

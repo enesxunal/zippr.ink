@@ -22,6 +22,24 @@ export function formatDate(date: string | Date, locale = "de-DE"): string {
   }).format(new Date(date));
 }
 
+/** Unpredictable public link id (a-z, 0-9) */
+export function generateSecureSlug(length = 12): string {
+  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+  const out: string[] = [];
+  const randomByte = () => {
+    if (typeof crypto !== "undefined" && crypto.getRandomValues) {
+      const a = new Uint8Array(1);
+      crypto.getRandomValues(a);
+      return a[0];
+    }
+    return Math.floor(Math.random() * 256);
+  };
+  for (let i = 0; i < length; i++) {
+    out.push(chars[randomByte() % chars.length]);
+  }
+  return out.join("");
+}
+
 export function slugify(text: string): string {
   return text
     .toLowerCase()
@@ -32,9 +50,7 @@ export function slugify(text: string): string {
     .slice(0, 64);
 }
 
-export function isImageMime(mime: string): boolean {
-  return ["image/png", "image/jpeg", "image/jpg", "image/webp"].includes(mime);
-}
+export { isImageMime } from "@/lib/file-types";
 
 export function getFileExtension(name: string): string {
   const parts = name.split(".");
@@ -68,6 +84,8 @@ export const RESERVED_SLUGS = [
   "enterprise",
   "support",
   "settings",
+  "tools",
+  "share",
   "de",
   "en",
   "tr",

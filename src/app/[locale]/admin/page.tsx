@@ -26,6 +26,9 @@ import {
   FileStack,
   Shield,
 } from "lucide-react";
+import { LogoutButton } from "@/components/auth/logout-button";
+import { ZipprLogo } from "@/components/brand/zippr-logo";
+import { AdminToslaSettings } from "@/components/admin/admin-tosla-settings";
 
 export default async function AdminPage() {
   const supabase = await createClient();
@@ -34,7 +37,7 @@ export default async function AdminPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  if (!user) redirect("/admin/login");
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -92,7 +95,13 @@ export default async function AdminPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10">
-      <h1 className="mb-8 text-2xl font-bold">{t("title")}</h1>
+      <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <ZipprLogo size="sm" linked />
+          <h1 className="text-2xl font-bold">{t("title")}</h1>
+        </div>
+        <LogoutButton redirectTo="/admin/login" />
+      </div>
 
       <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {kpis.map(({ label, value, icon: Icon }) => (
@@ -234,7 +243,8 @@ export default async function AdminPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="system">
+        <TabsContent value="system" className="space-y-6">
+          <AdminToslaSettings />
           <Card>
             <CardHeader>
               <CardTitle>Cron Logs</CardTitle>

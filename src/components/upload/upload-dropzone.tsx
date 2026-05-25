@@ -14,6 +14,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ZipprMark } from "@/components/brand/zippr-logo";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
@@ -25,6 +26,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn, formatBytes, isImageMime, slugify, isValidSlug } from "@/lib/utils";
+import { mapUploadError, createDefaultUploadSlug } from "@/lib/slug";
+import { uploadFileBytes } from "@/lib/upload-storage";
+import { getUploadAuthHeaders } from "@/lib/upload-auth";
 import type { ImageFormat } from "@/types/database";
 
 type Step = "idle" | "configure" | "uploading" | "done";
@@ -52,7 +56,7 @@ export function UploadDropzone() {
     if (!f) return;
     setFile(f);
     setCustomName(f.name);
-    setCustomSlug(slugify(f.name.replace(/\.[^.]+$/, "")));
+    setCustomSlug(createDefaultUploadSlug());
     setStep("configure");
     setError("");
   }, []);
@@ -65,11 +69,6 @@ export function UploadDropzone() {
 
   async function handleUpload() {
     if (!file) return;
-    if (!isValidSlug(customSlug)) {
-      setError(tErr("invalidSlug"));
-      return;
-    }
-
     setStep("uploading");
     setError("");
     setProgress(10);
@@ -111,39 +110,37 @@ export function UploadDropzone() {
 
       setProgress(40);
 
+      const authHeaders = await getUploadAuthHeaders();
       const initRes = await fetch("/api/upload/init", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...authHeaders },
+        credentials: "include",
         body: JSON.stringify({
           fileName: uploadFile.name,
           fileSize,
-          mimeType,
+          mimeType: mimeType || "application/octet-stream",
           customSlug,
           customName: customName || uploadFile.name,
+          useCustomSlug: false,
         }),
       });
 
       const initData = await initRes.json();
       if (!initRes.ok) {
-        throw new Error(initData.error || tErr("uploadFailed"));
+        throw new Error(mapUploadError(initData.error || "", tErr));
       }
+      if (initData.slug) setCustomSlug(initData.slug);
 
       setProgress(55);
 
-      if (initData.presignedUrl) {
-        const uploadRes = await fetch(initData.presignedUrl, {
-          method: "PUT",
-          body: uploadFile,
-          headers: { "Content-Type": mimeType },
-        });
-        if (!uploadRes.ok) throw new Error(tErr("uploadFailed"));
-      }
+      await uploadFileBytes(uploadFile, initData.fileId, initData.presignedUrl ?? null);
 
       setProgress(80);
 
       const completeRes = await fetch("/api/upload/complete", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...authHeaders },
+        credentials: "include",
         body: JSON.stringify({ fileId: initData.fileId }),
       });
 
@@ -223,7 +220,10 @@ export function UploadDropzone() {
           <div className="space-y-2">
             <Label htmlFor="customSlug">{t("customLink")}</Label>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-white/40">zippr.ink/</span>
+              <span className="flex items-center gap-1 text-sm text-white/40">
+                <ZipprMark />
+                <span>/</span>
+              </span>
               <Input
                 id="customSlug"
                 value={customSlug}
