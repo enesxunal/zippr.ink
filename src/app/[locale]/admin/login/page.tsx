@@ -1,20 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { Link } from "@/i18n/routing";
-import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ZipprLogo } from "@/components/brand/zippr-logo";
+import { routing } from "@/i18n/routing";
 
 export default function AdminLoginPage() {
   const t = useTranslations("auth");
   const ta = useTranslations("admin");
   const tc = useTranslations("common");
-  const [email, setEmail] = useState("");
+  const locale = useLocale();
+  const [email, setEmail] = useState("admin@zippr.ink");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -23,41 +24,34 @@ export default function AdminLoginPage() {
     e.preventDefault();
     setLoading(true);
     setError("");
-    const supabase = createClient();
 
-    const { data, error: signError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const res = await fetch("/api/auth/admin-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ email: email.trim(), password }),
+      });
 
-    if (signError) {
-      const msg = signError.message.toLowerCase();
-      if (msg.includes("failed to fetch") || msg.includes("network")) {
-        setError(ta("supabaseConnectionError"));
-      } else if (msg.includes("invalid login") || msg.includes("invalid credentials")) {
-        setError(ta("loginInvalid"));
-      } else {
-        setError(signError.message);
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        const code = data.error as string;
+        if (code === "invalid_credentials") setError(ta("loginInvalid"));
+        else if (code === "not_authorized") setError(ta("notAuthorized"));
+        else if (code === "auth_failed") setError(ta("supabaseConnectionError"));
+        else setError(ta("loginInvalid"));
+        setLoading(false);
+        return;
       }
+
+      const adminPath =
+        locale === routing.defaultLocale ? "/admin" : `/${locale}/admin`;
+      window.location.href = adminPath;
+    } catch {
+      setError(ta("supabaseConnectionError"));
       setLoading(false);
-      return;
     }
-
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", data.user!.id)
-      .single();
-
-    if (profile?.role !== "super_admin") {
-      await supabase.auth.signOut();
-      setError(ta("notAuthorized"));
-      setLoading(false);
-      return;
-    }
-
-    window.location.href = "/admin";
-    setLoading(false);
   }
 
   return (
