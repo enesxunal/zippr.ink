@@ -66,16 +66,15 @@ export async function middleware(request: NextRequest) {
   const intlResponse = intlMiddleware(request);
   const pathWithoutLocale = getPathWithoutLocale(pathname);
 
-  // OAuth dönüşü: page route yerine /api/auth/callback kullanılır
+  // OAuth dönüşü: locale'siz /auth/callback sayfasına yönlendir
   if (
-    pathname.startsWith("/api/auth/callback") ||
     pathWithoutLocale === "/auth/callback" ||
     pathWithoutLocale.startsWith("/auth/callback/")
   ) {
-    if (pathWithoutLocale === "/auth/callback" || pathWithoutLocale.startsWith("/auth/callback/")) {
-      const apiUrl = request.nextUrl.clone();
-      apiUrl.pathname = "/api/auth/callback";
-      return NextResponse.redirect(apiUrl);
+    if (pathname !== "/auth/callback") {
+      const dest = request.nextUrl.clone();
+      dest.pathname = "/auth/callback";
+      return NextResponse.redirect(dest);
     }
     return intlResponse;
   }

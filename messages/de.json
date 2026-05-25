@@ -80,7 +80,8 @@
     "hasAccount": "Bereits registriert?",
     "forgotPassword": "Passwort vergessen?",
     "orContinueWith": "oder",
-    "googleAuthError": "Google-Anmeldung konnte nicht gestartet werden. Seite neu laden und erneut versuchen."
+    "googleAuthError": "Google-Anmeldung konnte nicht gestartet werden. Seite neu laden und erneut versuchen.",
+    "callbackLoading": "Anmeldung wird abgeschlossen…"
   },
   "dashboard": {
     "title": "Mein Dashboard",

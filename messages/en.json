@@ -80,7 +80,8 @@
     "hasAccount": "Already have an account?",
     "forgotPassword": "Forgot password?",
     "orContinueWith": "or",
-    "googleAuthError": "Could not start Google sign-in. Refresh the page and try again."
+    "googleAuthError": "Could not start Google sign-in. Refresh the page and try again.",
+    "callbackLoading": "Completing sign-in…"
   },
   "dashboard": {
     "title": "My Dashboard",

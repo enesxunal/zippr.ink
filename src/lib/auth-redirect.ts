@@ -1,6 +1,6 @@
 import { getClientAppOrigin } from "@/lib/app-url";
 
-/** Google OAuth — tek sabit URL (locale/middleware karışmaz) */
+/** Google OAuth — tarayıcıda PKCE tamamlanır (/auth/callback sayfası) */
 export function getAuthCallbackUrl(_origin?: string, _locale?: string): string {
-  return `${getClientAppOrigin()}/api/auth/callback`;
+  return `${getClientAppOrigin()}/auth/callback`;
 }

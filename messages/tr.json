@@ -80,7 +80,8 @@
     "hasAccount": "Zaten hesabın var mı?",
     "forgotPassword": "Şifremi unuttum?",
     "orContinueWith": "veya",
-    "googleAuthError": "Google ile giriş başlatılamadı. Sayfayı yenileyip tekrar dene."
+    "googleAuthError": "Google ile giriş başlatılamadı. Sayfayı yenileyip tekrar dene.",
+    "callbackLoading": "Giriş tamamlanıyor…"
   },
   "dashboard": {
     "title": "Panelim",
