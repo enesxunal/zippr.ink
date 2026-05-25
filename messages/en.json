@@ -118,6 +118,7 @@
     "loginButton": "Open admin panel",
     "notAuthorized": "Not an admin account.",
     "loginInvalid": "Wrong email or password — or the admin account was not created in Supabase yet.",
+    "supabaseConnectionError": "Cannot reach Supabase. Fix .env.local on the server and rebuild.",
     "toslaTitle": "Tosla payment settings",
     "toslaDesc": "Save API credentials to enable checkout on the pricing page.",
     "toslaEnabled": "Enable Tosla payments",

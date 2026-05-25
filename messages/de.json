@@ -118,6 +118,7 @@
     "loginButton": "Admin-Panel öffnen",
     "notAuthorized": "Kein Admin-Zugang. Bitte normales Konto verwenden.",
     "loginInvalid": "E-Mail oder Passwort falsch — oder Admin-Konto existiert noch nicht in Supabase.",
+    "supabaseConnectionError": "Keine Verbindung zu Supabase. .env.local auf dem Server prüfen und neu bauen.",
     "toslaTitle": "Tosla Zahlungseinstellungen",
     "toslaDesc": "Nach dem Speichern der API-Daten ist Zahlung auf der Preisseite aktiv.",
     "toslaEnabled": "Tosla-Zahlung aktivieren",

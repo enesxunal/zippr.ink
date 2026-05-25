@@ -12,6 +12,9 @@ echo "[deploy] fetch origin/$BRANCH ..."
 git fetch origin "$BRANCH"
 git reset --hard "origin/$BRANCH"
 
+echo "[deploy] env check ..."
+bash scripts/check-env.sh .env.local
+
 echo "[deploy] npm install ..."
 npm ci
 

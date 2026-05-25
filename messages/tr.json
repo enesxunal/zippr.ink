@@ -118,6 +118,7 @@
     "loginButton": "Admin paneline git",
     "notAuthorized": "Admin yetkisi yok.",
     "loginInvalid": "E-posta veya şifre yanlış — ya da admin hesabı Supabase'de henüz oluşturulmamış.",
+    "supabaseConnectionError": "Supabase bağlantısı yok. Sunucuda .env.local içindeki URL/anahtarları kontrol edip yeniden build alın.",
     "toslaTitle": "Tosla ödeme ayarları",
     "toslaDesc": "API bilgilerini kaydedince fiyatlandırma sayfasında ödeme aktif olur.",
     "toslaEnabled": "Tosla ödemesini aktif et",

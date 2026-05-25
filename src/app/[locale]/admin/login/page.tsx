@@ -32,7 +32,9 @@ export default function AdminLoginPage() {
 
     if (signError) {
       const msg = signError.message.toLowerCase();
-      if (msg.includes("invalid login") || msg.includes("invalid credentials")) {
+      if (msg.includes("failed to fetch") || msg.includes("network")) {
+        setError(ta("supabaseConnectionError"));
+      } else if (msg.includes("invalid login") || msg.includes("invalid credentials")) {
         setError(ta("loginInvalid"));
       } else {
         setError(signError.message);
