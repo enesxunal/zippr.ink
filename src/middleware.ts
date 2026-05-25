@@ -47,6 +47,21 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  const pathWithoutLocaleEarly = getPathWithoutLocale(pathname);
+
+  // OAuth: i18n rewrite yapma (/auth/callback ↔ /tr/auth/callback döngüsünü önler)
+  if (
+    pathWithoutLocaleEarly === "/auth/callback" ||
+    pathWithoutLocaleEarly.startsWith("/auth/callback/")
+  ) {
+    if (pathname !== "/auth/callback") {
+      const dest = request.nextUrl.clone();
+      dest.pathname = "/auth/callback";
+      return NextResponse.redirect(dest);
+    }
+    return NextResponse.next();
+  }
+
   // Rewrite custom slugs: /3kareajans -> /de/share/3kareajans
   const slugMatch = pathname.match(/^\/([a-z0-9]+(?:-[a-z0-9]+)*)\/?$/);
   if (slugMatch) {
@@ -65,19 +80,6 @@ export async function middleware(request: NextRequest) {
 
   const intlResponse = intlMiddleware(request);
   const pathWithoutLocale = getPathWithoutLocale(pathname);
-
-  // OAuth dönüşü: locale'siz /auth/callback sayfasına yönlendir
-  if (
-    pathWithoutLocale === "/auth/callback" ||
-    pathWithoutLocale.startsWith("/auth/callback/")
-  ) {
-    if (pathname !== "/auth/callback") {
-      const dest = request.nextUrl.clone();
-      dest.pathname = "/auth/callback";
-      return NextResponse.redirect(dest);
-    }
-    return intlResponse;
-  }
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
