@@ -2,7 +2,7 @@ import createMiddleware from "next-intl/middleware";
 import { type NextRequest, NextResponse } from "next/server";
 import { routing } from "./i18n/routing";
 import { createServerClient } from "@supabase/ssr";
-import { isSuperAdmin } from "./lib/admin-access";
+import { isAdminEmail } from "./lib/admin-constants";
 
 const intlMiddleware = createMiddleware(routing);
 
@@ -104,8 +104,19 @@ export async function middleware(request: NextRequest) {
     (r) => pathWithoutLocale === r || pathWithoutLocale.startsWith(r + "/")
   );
 
+  async function userIsSuperAdmin() {
+    if (!user) return false;
+    if (isAdminEmail(user.email)) return true;
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+    return profile?.role === "super_admin";
+  }
+
   if (isAdminLogin) {
-    if (user && (await isSuperAdmin(user.id, user.email))) {
+    if (await userIsSuperAdmin()) {
       const url = request.nextUrl.clone();
       url.pathname =
         locale === routing.defaultLocale ? "/admin" : `/${locale}/admin`;
@@ -126,7 +137,7 @@ export async function middleware(request: NextRequest) {
     user &&
     (pathWithoutLocale === "/dashboard" || pathWithoutLocale.startsWith("/dashboard/"))
   ) {
-    if (await isSuperAdmin(user.id, user.email)) {
+    if (await userIsSuperAdmin()) {
       const url = request.nextUrl.clone();
       url.pathname =
         locale === routing.defaultLocale ? "/admin" : `/${locale}/admin`;
@@ -144,7 +155,7 @@ export async function middleware(request: NextRequest) {
   }
 
   if (isAdminPanel && user) {
-    const allowed = await isSuperAdmin(user.id, user.email);
+    const allowed = await userIsSuperAdmin();
     if (!allowed) {
       const url = request.nextUrl.clone();
       url.pathname =

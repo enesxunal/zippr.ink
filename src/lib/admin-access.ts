@@ -1,7 +1,8 @@
 import { createServiceClient } from "@/lib/supabase/admin";
+import { ADMIN_EMAIL } from "@/lib/admin-constants";
 import type { UserRole } from "@/types/database";
 
-export const ADMIN_EMAIL = "admin@zippr.ink";
+export { ADMIN_EMAIL } from "@/lib/admin-constants";
 
 /** Service role ile rol okur; admin@zippr.ink için super_admin garanti eder. */
 export async function resolveUserRole(
@@ -12,7 +13,7 @@ export async function resolveUserRole(
     const admin = createServiceClient();
     const normalizedEmail = email?.trim().toLowerCase();
 
-    let { data: profile } = await admin
+    const { data: profile } = await admin
       .from("profiles")
       .select("role")
       .eq("id", userId)
