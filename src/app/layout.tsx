@@ -10,8 +10,17 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+  const supabaseAnon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
+
   return (
     <html lang="de" className="dark" suppressHydrationWarning>
+      <head>
+        <meta name="zippr-supabase-url" content={supabaseUrl} />
+        <meta name="zippr-supabase-anon" content={supabaseAnon} />
+        <meta name="zippr-app-url" content={appUrl} />
+      </head>
       <body className="min-h-screen bg-black antialiased">{children}</body>
     </html>
   );

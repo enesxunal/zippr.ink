@@ -21,6 +21,13 @@ npm ci
 echo "[deploy] build ..."
 npm run build
 
+if grep -rq "xxxxxxxx.supabase" .next 2>/dev/null; then
+  echo "HATA: Build hâlâ xxxxxxxx.supabase içeriyor — .env.local kontrol et"
+  exit 1
+fi
+
+echo "[deploy] Supabase host: $(grep '^NEXT_PUBLIC_SUPABASE_URL=' .env.local | cut -d= -f2 | sed 's|https://||;s|\.supabase\.co||')"
+
 echo "[deploy] restart pm2 ($PM2_NAME) ..."
 if pm2 describe "$PM2_NAME" >/dev/null 2>&1; then
   pm2 restart "$PM2_NAME"
