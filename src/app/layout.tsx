@@ -15,7 +15,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
 
   return (
-    <html lang="de" className="dark" suppressHydrationWarning>
+    <html lang="tr" className="dark" suppressHydrationWarning>
       <head>
         <meta name="zippr-supabase-url" content={supabaseUrl} />
         <meta name="zippr-supabase-anon" content={supabaseAnon} />
