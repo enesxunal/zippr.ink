@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import { getAuthCallbackUrl } from "@/lib/auth-redirect";
+import { getGoogleOAuthStartPath } from "@/lib/auth-redirect";
 import { Link } from "@/i18n/routing";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -52,12 +52,8 @@ export default function LoginPage() {
     setLoading(false);
   }
 
-  async function handleGoogle() {
-    const supabase = createClient();
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: getAuthCallbackUrl() },
-    });
+  function handleGoogle() {
+    window.location.href = getGoogleOAuthStartPath();
   }
 
   return (

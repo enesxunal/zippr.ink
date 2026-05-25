@@ -8,5 +8,9 @@ export function createClient() {
     throw new Error("Supabase not configured");
   }
 
-  return createBrowserClient(url, anonKey);
+  return createBrowserClient(url, anonKey, {
+    auth: {
+      detectSessionInUrl: false,
+    },
+  });
 }
