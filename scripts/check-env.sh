@@ -38,6 +38,15 @@ if ! echo "${NEXT_PUBLIC_SUPABASE_URL:-}" | grep -q '\.supabase\.co'; then
   fail=1
 fi
 
+if echo "${NEXT_PUBLIC_APP_URL:-}" | grep -qi 'localhost'; then
+  echo "HATA: NEXT_PUBLIC_APP_URL localhost olamaz — https://zippr.ink yaz"
+  fail=1
+fi
+
+if ! echo "${NEXT_PUBLIC_APP_URL:-}" | grep -q '^https://zippr\.ink'; then
+  echo "UYARI: NEXT_PUBLIC_APP_URL https://zippr.ink olmalı (şu an: ${NEXT_PUBLIC_APP_URL:-boş})"
+fi
+
 if [ "$fail" -ne 0 ]; then
   exit 1
 fi

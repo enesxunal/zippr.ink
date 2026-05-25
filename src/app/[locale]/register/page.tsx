@@ -37,11 +37,20 @@ export default function RegisterPage() {
   }
 
   async function handleGoogle() {
-    const supabase = createClient();
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: getAuthCallbackUrl(window.location.origin, locale) },
-    });
+    setError("");
+    setLoading(true);
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: getAuthCallbackUrl(window.location.origin, locale) },
+      });
+      if (error) setError(error.message);
+    } catch {
+      setError(t("googleAuthError"));
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -82,7 +91,7 @@ export default function RegisterPage() {
               <span className="w-full border-t border-white/10" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-surface px-2 text-white/40">oder</span>
+              <span className="bg-surface px-2 text-white/40">{t("orContinueWith")}</span>
             </div>
           </div>
           <Button variant="secondary" className="w-full" onClick={handleGoogle}>

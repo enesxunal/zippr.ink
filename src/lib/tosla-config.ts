@@ -1,4 +1,5 @@
 import { createServiceClient } from "@/lib/supabase/admin";
+import { getAppBaseUrl } from "@/lib/app-url";
 
 export interface ToslaConfig {
   enabled: boolean;
@@ -22,7 +23,7 @@ const KEYS = [
 ] as const;
 
 export async function getToslaConfig(): Promise<ToslaConfig> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const baseUrl = getAppBaseUrl();
   const fallback: ToslaConfig = {
     enabled: false,
     clientId: process.env.TOSLA_CLIENT_ID || "",

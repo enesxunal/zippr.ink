@@ -3,7 +3,7 @@ import { mapUploadError } from "@/lib/slug";
 import { createDefaultUploadSlug } from "@/lib/slug";
 import { uploadFileBytes } from "@/lib/upload-storage";
 import { getUploadAuthHeaders } from "@/lib/upload-auth";
-import { getPublicFileUrl } from "@/lib/utils";
+import { getPublicFileUrl } from "@/lib/app-url";
 
 export type UploadShareResult = {
   shareUrl: string;
@@ -69,7 +69,10 @@ export async function uploadFileForShare(
   onProgress?.(100);
 
   return {
-    shareUrl: completeData.shareUrl || getPublicFileUrl(slug),
+    shareUrl:
+      completeData.shareUrl?.includes("localhost")
+        ? getPublicFileUrl(slug)
+        : completeData.shareUrl || getPublicFileUrl(slug),
     slug,
     slugAdjusted: Boolean(initData.slugAdjusted),
   };

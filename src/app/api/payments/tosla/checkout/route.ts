@@ -4,6 +4,7 @@ import { PLANS, PAID_PLANS } from "@/lib/plans";
 import { getToslaConfig } from "@/lib/tosla-config";
 import { createToslaCheckout } from "@/lib/tosla-payment";
 import type { PlanType } from "@/types/database";
+import { getAppBaseUrl } from "@/lib/app-url";
 
 export async function POST(request: NextRequest) {
   try {
@@ -34,7 +35,7 @@ export async function POST(request: NextRequest) {
     }
 
     const plan = PLANS[planType as PlanType];
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const baseUrl = getAppBaseUrl();
     const orderId = `zippr-${user.id.slice(0, 8)}-${Date.now()}`;
 
     const { checkoutUrl, threeDSessionId } = await createToslaCheckout(config, {

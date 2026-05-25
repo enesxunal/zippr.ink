@@ -68,10 +68,7 @@ export function planLabel(plan: PlanType): string {
   return labels[plan];
 }
 
-export function getPublicFileUrl(slug: string): string {
-  const base = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  return `${base}/${slug}`;
-}
+export { getPublicFileUrl, getAppBaseUrl, getClientAppOrigin, getRequestOrigin } from "@/lib/app-url";
 
 export const RESERVED_SLUGS = [
   "admin",

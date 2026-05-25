@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/admin";
 import { getUserIdFromRequest } from "@/lib/auth-api";
-import { getPublicFileUrl } from "@/lib/utils";
+import { getPublicFileUrl } from "@/lib/app-url";
 
 export async function POST(request: NextRequest) {
   try {
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const shareUrl = getPublicFileUrl(file.slug);
+    const shareUrl = getPublicFileUrl(file.slug, request);
 
     await admin.from("files").update({ download_url: shareUrl }).eq("id", fileId);
 

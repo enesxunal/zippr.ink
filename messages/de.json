@@ -78,7 +78,9 @@
     "signUpWithGoogle": "Mit Google registrieren",
     "noAccount": "Noch kein Konto?",
     "hasAccount": "Bereits registriert?",
-    "forgotPassword": "Passwort vergessen?"
+    "forgotPassword": "Passwort vergessen?",
+    "orContinueWith": "oder",
+    "googleAuthError": "Google-Anmeldung konnte nicht gestartet werden. Seite neu laden und erneut versuchen."
   },
   "dashboard": {
     "title": "Mein Dashboard",

@@ -78,7 +78,9 @@
     "signUpWithGoogle": "Sign up with Google",
     "noAccount": "Don't have an account?",
     "hasAccount": "Already have an account?",
-    "forgotPassword": "Forgot password?"
+    "forgotPassword": "Forgot password?",
+    "orContinueWith": "or",
+    "googleAuthError": "Could not start Google sign-in. Refresh the page and try again."
   },
   "dashboard": {
     "title": "My Dashboard",

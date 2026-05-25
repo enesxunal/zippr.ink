@@ -78,7 +78,9 @@
     "signUpWithGoogle": "Google ile kayıt ol",
     "noAccount": "Hesabın yok mu?",
     "hasAccount": "Zaten hesabın var mı?",
-    "forgotPassword": "Şifremi unuttum?"
+    "forgotPassword": "Şifremi unuttum?",
+    "orContinueWith": "veya",
+    "googleAuthError": "Google ile giriş başlatılamadı. Sayfayı yenileyip tekrar dene."
   },
   "dashboard": {
     "title": "Panelim",
