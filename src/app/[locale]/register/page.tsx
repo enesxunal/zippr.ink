@@ -43,7 +43,7 @@ export default function RegisterPage() {
       const supabase = createClient();
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: { redirectTo: getAuthCallbackUrl(window.location.origin, locale) },
+        options: { redirectTo: getAuthCallbackUrl() },
       });
       if (error) setError(error.message);
     } catch {
