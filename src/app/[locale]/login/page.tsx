@@ -10,6 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ZipprLogo } from "@/components/brand/zippr-logo";
+import { routing } from "@/i18n/routing";
+import type { UserRole } from "@/types/database";
 
 export default function LoginPage() {
   const t = useTranslations("auth");
@@ -25,9 +27,27 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
     const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) setError(error.message);
-    else window.location.href = "/dashboard";
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      setError(error.message);
+      setLoading(false);
+      return;
+    }
+    const dashboardPath =
+      locale === routing.defaultLocale ? "/dashboard" : `/${locale}/dashboard`;
+    const adminPath =
+      locale === routing.defaultLocale ? "/admin" : `/${locale}/admin`;
+    if (data.user) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", data.user.id)
+        .single<{ role: UserRole }>();
+      window.location.href =
+        profile?.role === "super_admin" ? adminPath : dashboardPath;
+    } else {
+      window.location.href = dashboardPath;
+    }
     setLoading(false);
   }
 

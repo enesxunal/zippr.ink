@@ -42,5 +42,21 @@ export async function handleAuthCallback(request: NextRequest, locale: string) {
     return NextResponse.redirect(new URL(`${loginPath}?error=auth`, url.origin));
   }
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+    if (profile?.role === "super_admin") {
+      const adminPath =
+        locale === routing.defaultLocale ? "/admin" : `/${locale}/admin`;
+      return NextResponse.redirect(new URL(adminPath, url.origin));
+    }
+  }
+
   return response;
 }

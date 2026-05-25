@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/admin";
+import { routing } from "@/i18n/routing";
+import type { UserRole } from "@/types/database";
 import { formatBytes } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,7 +15,12 @@ import { ClaimRecentUpload } from "@/components/dashboard/claim-recent-upload";
 import { LinkSlugToAccount } from "@/components/dashboard/link-slug-to-account";
 import { ZipprLogo } from "@/components/brand/zippr-logo";
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
   const supabase = await createClient();
   const t = await getTranslations("dashboard");
 
@@ -27,6 +34,10 @@ export default async function DashboardPage() {
     .select("*")
     .eq("id", user.id)
     .single();
+
+  if ((profile?.role as UserRole | undefined) === "super_admin") {
+    redirect(locale === routing.defaultLocale ? "/admin" : `/${locale}/admin`);
+  }
 
   const admin = createServiceClient();
   const { data: files } = await admin

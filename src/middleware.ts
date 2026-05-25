@@ -127,6 +127,24 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  if (
+    isProtected &&
+    user &&
+    (pathWithoutLocale === "/dashboard" || pathWithoutLocale.startsWith("/dashboard/"))
+  ) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+    if (profile?.role === "super_admin") {
+      const url = request.nextUrl.clone();
+      url.pathname =
+        locale === routing.defaultLocale ? "/admin" : `/${locale}/admin`;
+      return NextResponse.redirect(url);
+    }
+  }
+
   if (isAdminPanel && !user) {
     const url = request.nextUrl.clone();
     url.pathname =
