@@ -16,10 +16,7 @@ echo "[deploy] HEAD: $(git log -1 --oneline)"
 echo "[deploy] env check ..."
 bash scripts/check-env.sh .env.local
 
-echo "[deploy] pm2 durdur ve sil (eski chunk cache temizlenir) ..."
-pm2 delete "$PM2_NAME" 2>/dev/null || true
-
-echo "[deploy] npm install ..."
+echo "[deploy] npm install (site ayakta kalır, pm2 build sonrası yenilenir) ..."
 if ! npm ci; then
   echo "[deploy] npm ci başarısız (ENOTEMPTY vb.) — node_modules silinip yeniden deneniyor ..."
   rm -rf node_modules
@@ -51,7 +48,8 @@ fi
 
 echo "[deploy] Supabase host: $(grep '^NEXT_PUBLIC_SUPABASE_URL=' .env.local | cut -d= -f2 | sed 's|https://||;s|\.supabase\.co||')"
 
-echo "[deploy] pm2 başlat ..."
+echo "[deploy] pm2 yeniden başlat (build başarılı) ..."
+pm2 delete "$PM2_NAME" 2>/dev/null || true
 pm2 start npm --name "$PM2_NAME" --cwd "$APP_DIR" -- start
 pm2 save
 pm2 flush "$PM2_NAME" 2>/dev/null || true
