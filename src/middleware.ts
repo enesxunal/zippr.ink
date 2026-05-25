@@ -66,11 +66,17 @@ export async function middleware(request: NextRequest) {
   const intlResponse = intlMiddleware(request);
   const pathWithoutLocale = getPathWithoutLocale(pathname);
 
-  // OAuth dönüşü: middleware Supabase çağırmasın (PKCE / cookie bozulmasın, 502 önlenir)
+  // OAuth dönüşü: page route yerine /api/auth/callback kullanılır
   if (
+    pathname.startsWith("/api/auth/callback") ||
     pathWithoutLocale === "/auth/callback" ||
     pathWithoutLocale.startsWith("/auth/callback/")
   ) {
+    if (pathWithoutLocale === "/auth/callback" || pathWithoutLocale.startsWith("/auth/callback/")) {
+      const apiUrl = request.nextUrl.clone();
+      apiUrl.pathname = "/api/auth/callback";
+      return NextResponse.redirect(apiUrl);
+    }
     return intlResponse;
   }
 
