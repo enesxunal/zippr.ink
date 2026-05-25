@@ -49,9 +49,14 @@ cd "$APP_DIR"
 chmod +x scripts/deploy.sh
 
 if [ ! -f .env.local ]; then
+  if [ -f .env.production.example ]; then
+    cp .env.production.example .env.local
+    chmod 600 .env.local
+    echo ".env.local şablondan oluşturuldu."
+  fi
   echo ""
-  echo "ÖNEMLİ: $APP_DIR/.env.local dosyasını oluştur (Mac'teki .env.local kopyası)"
-  echo "NEXT_PUBLIC_APP_URL=https://zippr.ink olmalı"
+  echo "ÖNEMLİ: değerleri doldur → nano $APP_DIR/.env.local"
+  echo "  (Mac'teki .env.local kopyala, APP_URL=https://zippr.ink yap)"
   echo ""
 fi
 
