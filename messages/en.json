@@ -42,7 +42,8 @@
     "status": "Status",
     "active": "Active",
     "expired": "Expired",
-    "deleted": "Deleted"
+    "deleted": "Deleted",
+    "remove": "Remove"
   },
   "landing": {
     "heroTitle": "Your Files. One Link.",
@@ -95,7 +96,8 @@
     "addLinkToPanel": "Add an existing link to your panel (if you uploaded before signing in)",
     "addLink": "Add to panel",
     "linkAdded": "Link added to your panel.",
-    "linkNotFound": "Link not found or already linked."
+    "linkNotFound": "Link not found or already linked.",
+    "planLabel": "Plan: {plan}"
   },
   "admin": {
     "title": "Super Admin",
@@ -132,7 +134,28 @@
     "toslaSaving": "Saving…",
     "toslaSaved": "Tosla settings saved.",
     "toslaError": "Save failed.",
-    "toslaLoading": "Loading…"
+    "toslaLoading": "Loading…",
+    "tableEmail": "Email",
+    "tablePlan": "Plan",
+    "tableStorage": "Storage",
+    "tableRegistered": "Registered",
+    "tableActions": "Actions",
+    "tableCompany": "Company",
+    "tableUsers": "Users",
+    "tableStorageGb": "Storage (GB)",
+    "tableStatus": "Status",
+    "tableTitle": "Title",
+    "tablePriority": "Priority",
+    "tableCreated": "Created",
+    "banned": "Banned",
+    "cronLogs": "Scheduled jobs",
+    "cronJob": "Job",
+    "cronStatus": "Status",
+    "cronFiles": "Files",
+    "cronFreed": "Freed",
+    "cronMessage": "Message",
+    "cronTime": "Time",
+    "normalUserLogin": "Regular user login"
   },
   "tools": {
     "toolsMenu": "Tools",
@@ -150,14 +173,14 @@
     "convertTitle": "Convert",
     "convertSubtitle": "Upload a file — available formats appear automatically",
     "pdfTitle": "Edit PDF",
-    "pdfSubtitle": "Merge, split, delete pages, reorder",
-    "pdfCardDesc": "Merge PDFs, extract pages, remove or reorder pages",
+    "pdfSubtitle": "Merge, split, delete, reorder — then share a link",
+    "pdfCardDesc": "Edit PDFs — download or create a share link",
     "dropShare": "Drop files here (multiple allowed)",
     "dropCompressAny": "Drop images or PDFs (up to 20 files)",
     "dropConvertAny": "Drop a file — matching formats will show",
-    "desc_share": "Office, ZIP, video, PDF — link only, no conversion",
-    "desc_compress": "Compress images in batch · PDF soon",
-    "desc_convert": "Images only — other types use Share or PDF tools",
+    "desc_share": "Office, ZIP, video, PDF — download or create a share link",
+    "desc_compress": "Compress images — then download or create a link",
+    "desc_convert": "Convert images — then download or create a link",
     "type_image": "Image",
     "type_pdf": "PDF",
     "type_archive": "Archive",
@@ -214,6 +237,9 @@
     "pageOrder": "New order",
     "position": "Pos.",
     "page": "Page",
+    "processNow": "Process PDF",
+    "resultReady": "PDF ready",
+    "splitAllLinkHint": "All pages were shared as a ZIP link.",
     "downloadResult": "Download PDF",
     "pdfOnly": "PDF files only",
     "tooManyFiles": "Maximum {max} PDFs",
@@ -236,7 +262,14 @@
     "enterprise": "Enterprise",
     "perMonth": "/month",
     "contactUs": "Contact Us",
-    "currentPlan": "Current Plan"
+    "currentPlan": "Current Plan",
+    "planFeatures": {
+      "free": ["5 GB storage", "Files deleted after 7 days", "Basic compression"],
+      "lite": ["50 GB storage", "Files kept forever", "Priority compression"],
+      "standard": ["250 GB storage", "Files kept forever", "Custom link names"],
+      "professional": ["1 TB storage", "Files kept forever", "Priority support"],
+      "enterprise": ["Custom storage", "Multi-user access", "Dedicated support"]
+    }
   },
   "enterprise": {
     "title": "Enterprise Quote Request",

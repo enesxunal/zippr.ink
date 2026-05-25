@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { useTranslations } from "next-intl";
+import { Link, useRouter } from "@/i18n/routing";
 import JSZip from "jszip";
 import {
   FileText,
@@ -14,6 +15,9 @@ import {
   Download,
   ChevronUp,
   ChevronDown,
+  CheckCircle2,
+  Copy,
+  CloudUpload,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,8 +28,14 @@ import { LIMITS } from "@/lib/upload-limits";
 import { parsePageList } from "@/lib/pdf-pages";
 import { FileListRow } from "@/components/preview/file-list-row";
 import { PdfPageGrid } from "@/components/preview/pdf-page-grid";
+import { uploadFileForShare } from "@/lib/upload-share-client";
+import { getUploadAuthHeaders } from "@/lib/upload-auth";
+import { rememberUploadSlug } from "@/components/dashboard/claim-recent-upload";
+import { useUser } from "@/hooks/use-user";
+import { mapUploadError } from "@/lib/slug";
 
 type PdfAction = "merge" | "split" | "split_all" | "delete" | "reorder";
+type Step = "idle" | "processing" | "result" | "uploading" | "done";
 
 async function fileToBase64(file: File): Promise<string> {
   const buf = await file.arrayBuffer();
@@ -35,30 +45,32 @@ async function fileToBase64(file: File): Promise<string> {
   return btoa(binary);
 }
 
-function downloadBase64Pdf(base64: string, fileName: string) {
+function base64ToFile(base64: string, fileName: string, mime = "application/pdf"): File {
   const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
-  const blob = new Blob([bytes], { type: "application/pdf" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = fileName;
-  a.click();
-  URL.revokeObjectURL(url);
+  return new File([bytes], fileName, { type: mime });
 }
 
 export function PdfWorkspace() {
   const tc = useTranslations("common");
   const tPdf = useTranslations("pdf");
+  const tTools = useTranslations("tools");
   const tErr = useTranslations("errors");
+  const { isLoggedIn } = useUser();
+  const router = useRouter();
 
   const [action, setAction] = useState<PdfAction>("merge");
+  const [step, setStep] = useState<Step>("idle");
   const [files, setFiles] = useState<File[]>([]);
   const [pageRange, setPageRange] = useState("1-");
   const [pagesToDelete, setPagesToDelete] = useState("");
   const [pageOrder, setPageOrder] = useState<number[]>([]);
   const [pageCount, setPageCount] = useState(0);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [resultFile, setResultFile] = useState<File | null>(null);
+  const [shareUrl, setShareUrl] = useState("");
+  const [copied, setCopied] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [slugWasAdjusted, setSlugWasAdjusted] = useState(false);
 
   const needsMultiple = action === "merge";
 
@@ -93,9 +105,23 @@ export function PdfWorkspace() {
     [needsMultiple, tPdf]
   );
 
+  const loadPageCount = useCallback(async (file: File) => {
+    try {
+      const { PDFDocument } = await import("pdf-lib");
+      const doc = await PDFDocument.load(await file.arrayBuffer());
+      const count = doc.getPageCount();
+      setPageCount(count);
+      setPageOrder(Array.from({ length: count }, (_, i) => i));
+    } catch {
+      setPageCount(0);
+    }
+  }, []);
+
   const onDrop = useCallback(
     (accepted: File[]) => {
       setError("");
+      setResultFile(null);
+      setStep("idle");
       const valid = validatePdfFiles(accepted);
       if (!valid.length) return;
       if (needsMultiple) {
@@ -117,23 +143,8 @@ export function PdfWorkspace() {
         loadPageCount(valid[0]);
       }
     },
-    [needsMultiple, validatePdfFiles, tPdf]
+    [needsMultiple, validatePdfFiles, tPdf, loadPageCount]
   );
-
-  async function loadPageCount(file: File) {
-    try {
-      const { PDFDocument } = await import("pdf-lib");
-      const doc = await PDFDocument.load(await file.arrayBuffer());
-      const count = doc.getPageCount();
-      setPageCount(count);
-      setPageOrder(Array.from({ length: count }, (_, i) => i));
-      if (action === "split" && !pageRange.includes("-")) {
-        setPageRange(`1-${count}`);
-      }
-    } catch {
-      setPageCount(0);
-    }
-  }
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -149,6 +160,7 @@ export function PdfWorkspace() {
       else if (!next.length) {
         setPageCount(0);
         setPageOrder([]);
+        setStep("idle");
       }
       return next;
     });
@@ -190,20 +202,20 @@ export function PdfWorkspace() {
 
   async function handleProcess() {
     setError("");
-    setLoading(true);
+    setStep("processing");
     try {
       if (action === "merge") {
         if (files.length < 2) {
           setError(tPdf("needTwo"));
-          setLoading(false);
+          setStep("idle");
           return;
         }
         const encoded = await Promise.all(files.map(fileToBase64));
         const data = await runPdfApi({ action: "merge", files: encoded });
-        downloadBase64Pdf(data.data, data.fileName);
+        setResultFile(base64ToFile(data.data, data.fileName));
       } else if (!files[0]) {
         setError(tPdf("uploadFirst"));
-        setLoading(false);
+        setStep("idle");
         return;
       } else {
         const encoded = await fileToBase64(files[0]);
@@ -213,7 +225,7 @@ export function PdfWorkspace() {
             files: [encoded],
             pageRange,
           });
-          downloadBase64Pdf(data.data, data.fileName);
+          setResultFile(base64ToFile(data.data, data.fileName));
         } else if (action === "split_all") {
           const data = await runPdfApi({ action: "split_all", files: [encoded] });
           const zip = new JSZip();
@@ -221,33 +233,99 @@ export function PdfWorkspace() {
             zip.file(p.fileName, Uint8Array.from(atob(p.data), (c) => c.charCodeAt(0)));
           }
           const blob = await zip.generateAsync({ type: "blob" });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = "pages.zip";
-          a.click();
-          URL.revokeObjectURL(url);
+          setResultFile(
+            new File([blob], "pdf-pages.zip", { type: "application/zip" })
+          );
         } else if (action === "delete") {
           const data = await runPdfApi({
             action: "delete",
             files: [encoded],
             pagesToDelete,
           });
-          downloadBase64Pdf(data.data, data.fileName);
+          setResultFile(base64ToFile(data.data, data.fileName));
         } else if (action === "reorder") {
           const data = await runPdfApi({
             action: "reorder",
             files: [encoded],
             pageOrder,
           });
-          downloadBase64Pdf(data.data, data.fileName);
+          setResultFile(base64ToFile(data.data, data.fileName));
         }
       }
+      setStep("result");
     } catch (e) {
       setError(e instanceof Error ? e.message : tErr("uploadFailed"));
-    } finally {
-      setLoading(false);
+      setStep("idle");
     }
+  }
+
+  function downloadResult() {
+    if (!resultFile) return;
+    const url = URL.createObjectURL(resultFile);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = resultFile.name;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function handleCreateLink() {
+    if (!resultFile) return;
+    setStep("uploading");
+    setError("");
+    setProgress(0);
+    try {
+      const { shareUrl: url, slug, slugAdjusted } = await uploadFileForShare(
+        resultFile,
+        {
+          customName: resultFile.name,
+          onProgress: setProgress,
+          tErr,
+          ensureSession: isLoggedIn,
+        }
+      );
+      setShareUrl(url);
+      setSlugWasAdjusted(slugAdjusted);
+      rememberUploadSlug(slug);
+      setStep("done");
+
+      if (isLoggedIn) {
+        try {
+          const authHeaders = await getUploadAuthHeaders();
+          await fetch("/api/files/claim", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", ...authHeaders },
+            credentials: "include",
+            body: JSON.stringify({ slugs: [slug] }),
+          });
+        } catch {
+          // non-blocking
+        }
+        setTimeout(() => router.push("/dashboard"), 2500);
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "";
+      setError(mapUploadError(msg, tErr) || tErr("uploadFailed"));
+      setStep("result");
+    }
+  }
+
+  function copyLink() {
+    navigator.clipboard.writeText(shareUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  function reset() {
+    setFiles([]);
+    setResultFile(null);
+    setStep("idle");
+    setShareUrl("");
+    setError("");
+    setPageCount(0);
+    setPageOrder([]);
+    setProgress(0);
+    setSlugWasAdjusted(false);
   }
 
   const actions: { id: PdfAction; icon: typeof Merge; label: string; desc: string }[] = [
@@ -257,6 +335,92 @@ export function PdfWorkspace() {
     { id: "delete", icon: Trash2, label: tPdf("deletePages"), desc: tPdf("deleteDesc") },
     { id: "reorder", icon: ArrowUpDown, label: tPdf("reorder"), desc: tPdf("reorderDesc") },
   ];
+
+  if (step === "done") {
+    return (
+      <Card className="mx-auto max-w-xl border-violet/30">
+        <CardContent className="flex flex-col items-center gap-4 p-8 text-center">
+          <CheckCircle2 className="h-16 w-16 text-green-400" />
+          <h3 className="text-xl font-semibold">{tc("uploadComplete")}</h3>
+          <p className="text-white/60">{tc("yourLink")}</p>
+          {slugWasAdjusted && (
+            <p className="text-sm text-amber-300/90">{tErr("slugAdjusted")}</p>
+          )}
+          {action === "split_all" && (
+            <p className="text-sm text-white/50">{tPdf("splitAllLinkHint")}</p>
+          )}
+          <div className="flex w-full items-center gap-2 rounded-lg border border-white/10 bg-white/5 p-3">
+            <code className="flex-1 truncate text-sm text-violet-light">{shareUrl}</code>
+            <Button size="sm" onClick={copyLink}>
+              <Copy className="h-4 w-4" />
+              {copied ? tc("copied") : tc("copyLink")}
+            </Button>
+          </div>
+          {isLoggedIn && (
+            <p className="text-sm text-white/50">{tTools("redirectDashboard")}</p>
+          )}
+          {!isLoggedIn && (
+            <p className="text-sm text-white/50">
+              {tTools("loginForDashboard")}{" "}
+              <Link href="/login" className="text-violet-light underline">
+                {tc("login")}
+              </Link>
+            </p>
+          )}
+          <Button variant="ghost" onClick={reset}>
+            {tTools("anotherFile")}
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if ((step === "result" || step === "uploading") && resultFile) {
+    return (
+      <Card className="mx-auto max-w-xl">
+        <CardContent className="space-y-5 p-6">
+          <div className="flex flex-col gap-3 rounded-xl border border-green-500/30 bg-green-500/10 p-4">
+            <div className="flex items-start gap-3">
+              <CheckCircle2 className="h-8 w-8 shrink-0 text-green-400" />
+              <div className="min-w-0 flex-1">
+                <p className="font-medium">{tPdf("resultReady")}</p>
+                <p className="truncate text-sm text-white/50">{resultFile.name}</p>
+                <p className="text-sm text-white/45">{formatBytes(resultFile.size)}</p>
+              </div>
+            </div>
+            {resultFile.type === "application/pdf" && (
+              <PdfPageGrid file={resultFile} />
+            )}
+          </div>
+
+          <Button className="w-full gap-2" variant="secondary" onClick={downloadResult}>
+            <Download className="h-4 w-4" />
+            {tc("download")}
+          </Button>
+
+          <Button className="w-full gap-2" onClick={handleCreateLink} disabled={step === "uploading"}>
+            {step === "uploading" ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                {tc("processing")} {progress}%
+              </>
+            ) : (
+              <>
+                <CloudUpload className="h-4 w-4" />
+                {tTools("createLink")}
+              </>
+            )}
+          </Button>
+
+          {error && <p className="text-sm text-red-400">{error}</p>}
+
+          <Button variant="ghost" className="w-full" onClick={reset}>
+            {tTools("anotherFile")}
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
@@ -270,6 +434,8 @@ export function PdfWorkspace() {
               setFiles([]);
               setError("");
               setPageCount(0);
+              setResultFile(null);
+              setStep("idle");
             }}
             className={cn(
               "rounded-xl border p-4 text-left transition",
@@ -400,19 +566,16 @@ export function PdfWorkspace() {
 
       <Button
         className="w-full gap-2"
-        disabled={loading || (action === "merge" ? files.length < 2 : !files[0])}
+        disabled={step === "processing" || (action === "merge" ? files.length < 2 : !files[0])}
         onClick={handleProcess}
       >
-        {loading ? (
+        {step === "processing" ? (
           <>
             <Loader2 className="h-4 w-4 animate-spin" />
             {tc("processing")}
           </>
         ) : (
-          <>
-            <Download className="h-4 w-4" />
-            {tPdf("downloadResult")}
-          </>
+          tPdf("processNow")
         )}
       </Button>
     </div>

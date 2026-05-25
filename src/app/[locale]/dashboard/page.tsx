@@ -80,7 +80,7 @@ export default async function DashboardPage({
             </div>
             <Progress value={storagePercent} className="h-3" />
             <p className="mt-2 text-xs text-white/40 capitalize">
-              Plan: {profile?.plan_type || "free"}
+              {t("planLabel", { plan: profile?.plan_type || "free" })}
             </p>
           </CardContent>
         </Card>

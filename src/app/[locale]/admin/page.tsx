@@ -128,11 +128,11 @@ export default async function AdminPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Plan</TableHead>
-                    <TableHead>Storage</TableHead>
-                    <TableHead>Registered</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead>{t("tableEmail")}</TableHead>
+                    <TableHead>{t("tablePlan")}</TableHead>
+                    <TableHead>{t("tableStorage")}</TableHead>
+                    <TableHead>{t("tableRegistered")}</TableHead>
+                    <TableHead>{t("tableActions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -142,7 +142,7 @@ export default async function AdminPage() {
                         {p.email}
                         {p.is_banned && (
                           <Badge variant="destructive" className="ml-2">
-                            Banned
+                            {t("banned")}
                           </Badge>
                         )}
                       </TableCell>
@@ -169,12 +169,12 @@ export default async function AdminPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Company</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Users</TableHead>
-                    <TableHead>Storage GB</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead>{t("tableCompany")}</TableHead>
+                    <TableHead>{t("tableEmail")}</TableHead>
+                    <TableHead>{t("tableUsers")}</TableHead>
+                    <TableHead>{t("tableStorageGb")}</TableHead>
+                    <TableHead>{t("tableStatus")}</TableHead>
+                    <TableHead>{t("tableActions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -204,11 +204,11 @@ export default async function AdminPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Priority</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead>{t("tableTitle")}</TableHead>
+                    <TableHead>{t("tablePriority")}</TableHead>
+                    <TableHead>{t("tableStatus")}</TableHead>
+                    <TableHead>{t("tableCreated")}</TableHead>
+                    <TableHead>{t("tableActions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -242,18 +242,18 @@ export default async function AdminPage() {
           <AdminToslaSettings />
           <Card>
             <CardHeader>
-              <CardTitle>Cron Logs</CardTitle>
+              <CardTitle>{t("cronLogs")}</CardTitle>
             </CardHeader>
             <CardContent className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Job</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Files</TableHead>
-                    <TableHead>Freed</TableHead>
-                    <TableHead>Message</TableHead>
-                    <TableHead>Time</TableHead>
+                    <TableHead>{t("cronJob")}</TableHead>
+                    <TableHead>{t("cronStatus")}</TableHead>
+                    <TableHead>{t("cronFiles")}</TableHead>
+                    <TableHead>{t("cronFreed")}</TableHead>
+                    <TableHead>{t("cronMessage")}</TableHead>
+                    <TableHead>{t("cronTime")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

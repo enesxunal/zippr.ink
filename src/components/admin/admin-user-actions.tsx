@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -16,7 +17,12 @@ interface Props {
   plan: PlanType;
 }
 
+const PLANS: PlanType[] = ["free", "lite", "standard", "professional", "enterprise"];
+
 export function AdminUserActions({ userId, isBanned, plan }: Props) {
+  const t = useTranslations("admin");
+  const tp = useTranslations("pricing");
+
   async function toggleBan() {
     await fetch("/api/admin/users", {
       method: "PATCH",
@@ -42,15 +48,15 @@ export function AdminUserActions({ userId, isBanned, plan }: Props) {
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="free">Free</SelectItem>
-          <SelectItem value="lite">Lite</SelectItem>
-          <SelectItem value="standard">Standard</SelectItem>
-          <SelectItem value="professional">Professional</SelectItem>
-          <SelectItem value="enterprise">Enterprise</SelectItem>
+          {PLANS.map((p) => (
+            <SelectItem key={p} value={p}>
+              {tp(p)}
+            </SelectItem>
+          ))}
         </SelectContent>
       </Select>
       <Button size="sm" variant={isBanned ? "outline" : "destructive"} onClick={toggleBan}>
-        {isBanned ? "Unban" : "Ban"}
+        {isBanned ? t("unbanUser") : t("banUser")}
       </Button>
     </div>
   );

@@ -52,7 +52,7 @@ export default function PricingPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <ul className="space-y-2">
-                  {config.features.map((f) => (
+                  {(t.raw(`planFeatures.${plan}`) as string[]).map((f) => (
                     <li key={f} className="flex items-start gap-2 text-sm text-white/70">
                       <Check className="mt-0.5 h-4 w-4 shrink-0 text-violet-light" />
                       {f}

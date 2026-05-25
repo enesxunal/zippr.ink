@@ -42,7 +42,8 @@
     "status": "Status",
     "active": "Aktiv",
     "expired": "Abgelaufen",
-    "deleted": "Gelöscht"
+    "deleted": "Gelöscht",
+    "remove": "Entfernen"
   },
   "landing": {
     "heroTitle": "Deine Dateien. Ein Link.",
@@ -95,7 +96,8 @@
     "addLinkToPanel": "Bestehenden Link zum Panel hinzufügen (wenn vor Anmeldung hochgeladen)",
     "addLink": "Zum Panel hinzufügen",
     "linkAdded": "Link wurde hinzugefügt.",
-    "linkNotFound": "Link nicht gefunden oder bereits verknüpft."
+    "linkNotFound": "Link nicht gefunden oder bereits verknüpft.",
+    "planLabel": "Plan: {plan}"
   },
   "admin": {
     "title": "Super Admin",
@@ -132,7 +134,28 @@
     "toslaSaving": "Speichern…",
     "toslaSaved": "Tosla-Einstellungen gespeichert.",
     "toslaError": "Speichern fehlgeschlagen.",
-    "toslaLoading": "Lädt…"
+    "toslaLoading": "Lädt…",
+    "tableEmail": "E-Mail",
+    "tablePlan": "Plan",
+    "tableStorage": "Speicher",
+    "tableRegistered": "Registriert",
+    "tableActions": "Aktionen",
+    "tableCompany": "Firma",
+    "tableUsers": "Benutzer",
+    "tableStorageGb": "Speicher (GB)",
+    "tableStatus": "Status",
+    "tableTitle": "Titel",
+    "tablePriority": "Priorität",
+    "tableCreated": "Erstellt",
+    "banned": "Gesperrt",
+    "cronLogs": "Geplante Aufgaben",
+    "cronJob": "Aufgabe",
+    "cronStatus": "Status",
+    "cronFiles": "Dateien",
+    "cronFreed": "Frei",
+    "cronMessage": "Meldung",
+    "cronTime": "Zeit",
+    "normalUserLogin": "Normale Anmeldung"
   },
   "tools": {
     "toolsMenu": "Tools",
@@ -150,14 +173,14 @@
     "convertTitle": "Format ändern",
     "convertSubtitle": "Lade eine Datei hoch — verfügbare Formate erscheinen automatisch",
     "pdfTitle": "PDF bearbeiten",
-    "pdfSubtitle": "Zusammenführen, teilen, Seiten löschen und sortieren",
-    "pdfCardDesc": "PDFs zusammenführen, teilen, Seiten entfernen oder neu anordnen",
+    "pdfSubtitle": "Zusammenführen, teilen, löschen, sortieren — dann Link teilen",
+    "pdfCardDesc": "PDF bearbeiten — laden oder Share-Link erstellen",
     "dropShare": "Dateien hier ablegen (auch mehrere)",
     "dropCompressAny": "Bilder oder PDFs ablegen (bis 20 Dateien)",
     "dropConvertAny": "Datei ablegen — passende Formate werden angezeigt",
-    "desc_share": "Office, ZIP, Video, PDF — alles nur verlinken",
-    "desc_compress": "Bilder in Serie komprimieren · PDF bald",
-    "desc_convert": "Nur Bilder — andere Formate über Teilen oder PDF",
+    "desc_share": "Office, ZIP, Video, PDF — herunterladen oder Link erstellen",
+    "desc_compress": "Bilder komprimieren — dann laden oder Link erstellen",
+    "desc_convert": "Bilder konvertieren — dann laden oder Link erstellen",
     "type_image": "Bild",
     "type_pdf": "PDF",
     "type_archive": "Archiv",
@@ -214,6 +237,9 @@
     "pageOrder": "Neue Reihenfolge",
     "position": "Pos.",
     "page": "Seite",
+    "processNow": "PDF verarbeiten",
+    "resultReady": "PDF fertig",
+    "splitAllLinkHint": "Alle Seiten wurden als ZIP-Link geteilt.",
     "downloadResult": "PDF herunterladen",
     "pdfOnly": "Nur PDF-Dateien",
     "tooManyFiles": "Maximal {max} PDFs",
@@ -236,7 +262,14 @@
     "enterprise": "Enterprise",
     "perMonth": "/Monat",
     "contactUs": "Kontaktieren Sie uns",
-    "currentPlan": "Aktueller Plan"
+    "currentPlan": "Aktueller Plan",
+    "planFeatures": {
+      "free": ["5 GB Speicher", "Dateien nach 7 Tagen gelöscht", "Basis-Komprimierung"],
+      "lite": ["50 GB Speicher", "Dateien bleiben dauerhaft", "Prioritäts-Komprimierung"],
+      "standard": ["250 GB Speicher", "Dateien bleiben dauerhaft", "Eigene Link-Namen"],
+      "professional": ["1 TB Speicher", "Dateien bleiben dauerhaft", "Prioritäts-Support"],
+      "enterprise": ["Individueller Speicher", "Mehrbenutzer-Zugang", "Dedizierter Support"]
+    }
   },
   "enterprise": {
     "title": "Enterprise-Anfrage",

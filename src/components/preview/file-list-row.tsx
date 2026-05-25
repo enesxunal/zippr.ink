@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { X } from "lucide-react";
 import { LocalFilePreview } from "@/components/preview/local-file-preview";
 import { formatBytes } from "@/lib/utils";
@@ -11,6 +12,8 @@ interface FileListRowProps {
 }
 
 export function FileListRow({ file, meta, onRemove }: FileListRowProps) {
+  const t = useTranslations("common");
+
   return (
     <div className="flex items-center gap-3 rounded-lg bg-white/5 px-3 py-2">
       <LocalFilePreview file={file} size="sm" />
@@ -26,7 +29,7 @@ export function FileListRow({ file, meta, onRemove }: FileListRowProps) {
           type="button"
           onClick={onRemove}
           className="shrink-0 text-white/40 hover:text-white"
-          aria-label="Remove"
+          aria-label={t("remove")}
         >
           <X className="h-4 w-4" />
         </button>

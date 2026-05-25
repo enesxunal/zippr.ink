@@ -96,7 +96,7 @@ export default function AdminLoginPage() {
             </Link>
             {" · "}
             <Link href="/login" className="hover:text-white/60">
-              {t("signIn")} ({tc("register")})
+              {ta("normalUserLogin")}
             </Link>
           </p>
         </CardContent>
