@@ -13,6 +13,13 @@ export function readPublicEnv(name: string): string {
 }
 
 export function getSupabaseBrowserConfig(): { url: string; anonKey: string } {
+  const envUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() ?? "";
+  const envKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() ?? "";
+
+  if (envUrl.includes(".supabase.co") && envKey && !envUrl.includes("xxxx")) {
+    return { url: envUrl, anonKey: envKey };
+  }
+
   const url = readPublicEnv("zippr-supabase-url").trim();
   const anonKey = readPublicEnv("zippr-supabase-anon").trim();
   return { url, anonKey };
