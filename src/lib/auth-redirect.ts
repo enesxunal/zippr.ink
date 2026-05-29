@@ -4,3 +4,8 @@ import { getClientAppOrigin } from "@/lib/app-url";
 export function getAuthCallbackUrl(): string {
   return `${getClientAppOrigin()}/auth/callback`;
 }
+
+/** Sunucuda PKCE çerezi yazılır */
+export function getGoogleOAuthStartPath(): string {
+  return "/api/auth/oauth/google";
+}

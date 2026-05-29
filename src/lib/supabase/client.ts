@@ -1,7 +1,7 @@
 import { createBrowserClient } from "@supabase/ssr";
 import { getSupabaseBrowserConfig } from "@/lib/supabase/public-env";
+import { browserCookieMethods } from "@/lib/supabase/browser-cookies";
 
-/** Tarayıcıda Supabase'in kendi cookie (base64url) yönetimini kullanır — PKCE için gerekli */
 export function createClient() {
   const { url, anonKey } = getSupabaseBrowserConfig();
   if (!url || !anonKey) {
@@ -9,8 +9,10 @@ export function createClient() {
   }
 
   return createBrowserClient(url, anonKey, {
+    cookies: browserCookieMethods,
     auth: {
       detectSessionInUrl: false,
+      flowType: "pkce",
     },
   });
 }
