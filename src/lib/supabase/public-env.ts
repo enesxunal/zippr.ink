@@ -2,7 +2,7 @@
 export function readPublicEnv(name: string): string {
   if (typeof document !== "undefined") {
     const fromMeta = document.querySelector(`meta[name="${name}"]`)?.getAttribute("content");
-    if (fromMeta) return fromMeta;
+    if (fromMeta?.trim() && !fromMeta.includes("xxxx")) return fromMeta.trim();
   }
   const map: Record<string, string | undefined> = {
     "zippr-supabase-url": process.env.NEXT_PUBLIC_SUPABASE_URL,

@@ -24,11 +24,22 @@ if ! npm ci; then
 fi
 
 echo "[deploy] temiz build (.next + cache siliniyor) ..."
-rm -rf .next node_modules/.cache
+rm -rf .next node_modules/.cache .next-build
 
 echo "[deploy] build ..."
 export NODE_ENV=production
 npm run build
+
+if [ ! -d .next/static/chunks ]; then
+  echo "HATA: .next/static/chunks yok — build bozuk"
+  exit 1
+fi
+
+STATIC_JS=$(find .next/static/chunks -name '*.js' 2>/dev/null | wc -l | tr -d ' ')
+if [ "${STATIC_JS:-0}" -lt 5 ]; then
+  echo "HATA: client chunk sayısı çok az ($STATIC_JS)"
+  exit 1
+fi
 
 if [ ! -f .next/required-server-files.json ]; then
   echo "HATA: Build eksik — .next/required-server-files.json yok"

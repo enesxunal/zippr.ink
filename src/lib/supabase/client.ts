@@ -1,19 +1,28 @@
+"use client";
+
 import { createBrowserClient } from "@supabase/ssr";
-import { getSupabaseBrowserConfig } from "@/lib/supabase/public-env";
+import { getSupabaseBrowserConfig, isSupabaseConfigured } from "@/lib/supabase/public-env";
 import { browserCookieMethods } from "@/lib/supabase/browser-cookies";
 
 export function createClient() {
-  const { url, anonKey } = getSupabaseBrowserConfig();
-  if (!url || !anonKey) {
+  if (!isSupabaseConfigured()) {
     throw new Error("Supabase not configured");
   }
+  const { url, anonKey } = getSupabaseBrowserConfig();
 
   return createBrowserClient(url, anonKey, {
     cookies: browserCookieMethods,
     auth: {
-      flowType: "pkce",
       detectSessionInUrl: false,
       persistSession: true,
     },
   });
+}
+
+export function tryCreateClient() {
+  try {
+    return createClient();
+  } catch {
+    return null;
+  }
 }

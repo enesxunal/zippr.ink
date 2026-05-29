@@ -1,3 +1,5 @@
+"use client";
+
 import { parse, serialize, type CookieSerializeOptions } from "cookie";
 
 type CookieToSet = {
@@ -21,7 +23,6 @@ function toSerializeOptions(options?: Record<string, unknown>): CookieSerializeO
   };
 }
 
-/** @supabase/ssr ile uyumlu — PKCE verifier document.cookie üzerinden */
 export const browserCookieMethods = {
   getAll() {
     if (typeof document === "undefined") return [];

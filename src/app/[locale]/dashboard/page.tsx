@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
-import { createServiceClient } from "@/lib/supabase/admin";
 import { routing } from "@/i18n/routing";
 import { isSuperAdmin } from "@/lib/admin-access";
 import { formatBytes } from "@/lib/utils";
@@ -39,8 +38,7 @@ export default async function DashboardPage({
     redirect(locale === routing.defaultLocale ? "/admin" : `/${locale}/admin`);
   }
 
-  const admin = createServiceClient();
-  const { data: files } = await admin
+  const { data: files } = await supabase
     .from("files")
     .select("*")
     .eq("user_id", user.id)
