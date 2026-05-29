@@ -4,7 +4,7 @@ import { isAdminEmail } from "@/lib/admin-constants";
 import { getRequestOrigin } from "@/lib/app-url";
 import {
   copyResponseCookies,
-  createSupabaseRouteClient,
+  createSupabaseCallbackClient,
 } from "@/lib/supabase/route-cookies";
 
 export async function handleAuthCallback(request: NextRequest, locale: string) {
@@ -22,6 +22,7 @@ export async function handleAuthCallback(request: NextRequest, locale: string) {
   loginUrl.searchParams.set("error", "auth");
 
   if (!code) {
+    console.error("[auth callback] missing code param");
     return NextResponse.redirect(loginUrl);
   }
 
@@ -29,12 +30,12 @@ export async function handleAuthCallback(request: NextRequest, locale: string) {
   const response = NextResponse.redirect(dashboardUrl);
 
   try {
-    const supabase = createSupabaseRouteClient(request, response);
+    const supabase = await createSupabaseCallbackClient(request, response);
 
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (error) {
-      console.error("auth callback exchange:", error.message);
+      console.error("[auth callback] exchangeCodeForSession:", error.message);
       return NextResponse.redirect(loginUrl);
     }
 
@@ -47,7 +48,7 @@ export async function handleAuthCallback(request: NextRequest, locale: string) {
 
     return response;
   } catch (e) {
-    console.error("auth callback:", e);
+    console.error("[auth callback] unhandled:", e);
     return NextResponse.redirect(loginUrl);
   }
 }

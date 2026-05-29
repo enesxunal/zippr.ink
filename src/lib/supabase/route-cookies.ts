@@ -1,7 +1,8 @@
 import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 import type { NextRequest, NextResponse } from "next/server";
 
-type CookieToSet = {
+export type CookieToSet = {
   name: string;
   value: string;
   options?: Record<string, unknown>;
@@ -34,6 +35,40 @@ export function applyCookiesToResponse(response: NextResponse, cookiesToSet: Coo
 export function copyResponseCookies(from: NextResponse, to: NextResponse) {
   from.cookies.getAll().forEach((cookie) => {
     to.cookies.set(cookie);
+  });
+}
+
+/** Next.js 15: await cookies() + istek çerezleri birleştirilir (PKCE verifier) */
+export async function createSupabaseCallbackClient(
+  request: NextRequest,
+  response: NextResponse
+) {
+  const cookieStore = await cookies();
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !anonKey) {
+    throw new Error("Supabase env missing");
+  }
+
+  return createServerClient(url, anonKey, {
+    cookies: {
+      getAll() {
+        const merged = new Map<string, { name: string; value: string }>();
+        for (const c of cookieStore.getAll()) merged.set(c.name, c);
+        for (const c of request.cookies.getAll()) merged.set(c.name, c);
+        return [...merged.values()];
+      },
+      setAll(cookiesToSet: CookieToSet[]) {
+        cookiesToSet.forEach(({ name, value, options }) => {
+          try {
+            cookieStore.set(name, value, options);
+          } catch (err) {
+            console.error("[auth] cookieStore.set failed:", name, err);
+          }
+        });
+        applyCookiesToResponse(response, cookiesToSet);
+      },
+    },
   });
 }
 

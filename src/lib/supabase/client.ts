@@ -1,5 +1,6 @@
 import { createBrowserClient } from "@supabase/ssr";
 import { getSupabaseBrowserConfig } from "@/lib/supabase/public-env";
+import { browserCookieMethods } from "@/lib/supabase/browser-cookies";
 
 export function createClient() {
   const { url, anonKey } = getSupabaseBrowserConfig();
@@ -8,8 +9,11 @@ export function createClient() {
   }
 
   return createBrowserClient(url, anonKey, {
+    cookies: browserCookieMethods,
     auth: {
+      flowType: "pkce",
       detectSessionInUrl: false,
+      persistSession: true,
     },
   });
 }
