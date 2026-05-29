@@ -1,26 +1,22 @@
 "use client";
 
 import { useEffect } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { tryCreateClient } from "@/lib/supabase/client";
 import { getUploadAuthHeaders } from "@/lib/upload-auth";
-
-const STORAGE_KEY = "zippr_pending_slugs";
+import {
+  clearPendingUploadSlugs,
+  getPendingUploadSlugs,
+} from "@/lib/pending-upload-slugs";
 
 export function ClaimRecentUpload() {
   useEffect(() => {
     async function claim() {
-      const raw = sessionStorage.getItem(STORAGE_KEY);
-      if (!raw) return;
-
-      let slugs: string[] = [];
-      try {
-        slugs = JSON.parse(raw) as string[];
-      } catch {
-        return;
-      }
+      const slugs = getPendingUploadSlugs();
       if (!slugs.length) return;
 
-      const supabase = createClient();
+      const supabase = tryCreateClient();
+      if (!supabase) return;
+
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -34,9 +30,22 @@ export function ClaimRecentUpload() {
         body: JSON.stringify({ slugs }),
       });
 
-      if (res.ok) {
-        sessionStorage.removeItem(STORAGE_KEY);
-        window.location.reload();
+      if (!res.ok) return;
+
+      const data = (await res.json()) as {
+        linked?: number;
+        alreadyOwned?: string[];
+      };
+
+      const linked = data.linked ?? 0;
+      const owned = data.alreadyOwned ?? [];
+      const allAccountedFor = slugs.every(
+        (s) => owned.includes(s) || (data as { slugs?: string[] }).slugs?.includes(s)
+      );
+
+      if (linked > 0 || allAccountedFor) {
+        clearPendingUploadSlugs();
+        if (linked > 0) window.location.reload();
       }
     }
 
@@ -46,13 +55,4 @@ export function ClaimRecentUpload() {
   return null;
 }
 
-export function rememberUploadSlug(slug: string) {
-  try {
-    const raw = sessionStorage.getItem(STORAGE_KEY);
-    const list: string[] = raw ? (JSON.parse(raw) as string[]) : [];
-    if (!list.includes(slug)) list.unshift(slug);
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(list.slice(0, 5)));
-  } catch {
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify([slug]));
-  }
-}
+export { rememberUploadSlug } from "@/lib/pending-upload-slugs";

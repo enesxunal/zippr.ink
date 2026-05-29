@@ -28,7 +28,9 @@ import {
 import { cn, formatBytes, isImageMime, slugify, isValidSlug } from "@/lib/utils";
 import { mapUploadError, createDefaultUploadSlug } from "@/lib/slug";
 import { uploadFileBytes } from "@/lib/upload-storage";
+import { createClient } from "@/lib/supabase/client";
 import { getUploadAuthHeaders } from "@/lib/upload-auth";
+import { rememberUploadSlug } from "@/lib/pending-upload-slugs";
 import type { ImageFormat } from "@/types/database";
 
 type Step = "idle" | "configure" | "uploading" | "done";
@@ -110,6 +112,10 @@ export function UploadDropzone() {
 
       setProgress(40);
 
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       const authHeaders = await getUploadAuthHeaders();
       const initRes = await fetch("/api/upload/init", {
         method: "POST",
@@ -149,6 +155,21 @@ export function UploadDropzone() {
 
       setProgress(100);
       setShareUrl(completeData.shareUrl);
+      if (completeData.slug || initData.slug) {
+        rememberUploadSlug(completeData.slug || initData.slug);
+      }
+      if (user && (completeData.slug || initData.slug)) {
+        try {
+          await fetch("/api/files/claim", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", ...authHeaders },
+            credentials: "include",
+            body: JSON.stringify({ slugs: [completeData.slug || initData.slug] }),
+          });
+        } catch {
+          // non-blocking
+        }
+      }
       setStep("done");
     } catch (e) {
       setError(e instanceof Error ? e.message : tErr("uploadFailed"));

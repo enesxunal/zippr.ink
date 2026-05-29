@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Copy, Trash2 } from "lucide-react";
+import { getUploadAuthHeaders } from "@/lib/upload-auth";
 
 interface FileActionsProps {
   slug: string;
@@ -23,7 +24,13 @@ export function FileActions({ slug, shareUrl }: FileActionsProps) {
 
   async function revoke() {
     if (!confirm(td("revokeLink") + "?")) return;
-    await fetch(`/api/download/${slug}`, { method: "DELETE" });
+    const headers = await getUploadAuthHeaders();
+    const res = await fetch(`/api/download/${slug}`, {
+      method: "DELETE",
+      headers,
+      credentials: "include",
+    });
+    if (!res.ok) return;
     window.location.reload();
   }
 

@@ -13,6 +13,7 @@ import { LogoutButton } from "@/components/auth/logout-button";
 import { ClaimRecentUpload } from "@/components/dashboard/claim-recent-upload";
 import { LinkSlugToAccount } from "@/components/dashboard/link-slug-to-account";
 import { ZipprLogo } from "@/components/brand/zippr-logo";
+import { listUserFiles } from "@/lib/dashboard-files";
 
 export default async function DashboardPage({
   params,
@@ -38,12 +39,7 @@ export default async function DashboardPage({
     redirect(locale === routing.defaultLocale ? "/admin" : `/${locale}/admin`);
   }
 
-  const { data: files } = await supabase
-    .from("files")
-    .select("*")
-    .eq("user_id", user.id)
-    .neq("status", "deleted")
-    .order("created_at", { ascending: false });
+  const files = await listUserFiles(user.id, supabase);
 
   const storageUsed = Number(profile?.storage_used || 0);
   const storageLimit = Number(profile?.storage_limit || 5368709120);

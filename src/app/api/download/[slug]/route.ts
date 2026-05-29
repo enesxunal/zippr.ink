@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/admin";
+import { getUserIdFromRequest } from "@/lib/auth-api";
 import { getPresignedDownloadUrl } from "@/lib/r2";
 import { deleteFromR2 } from "@/lib/r2";
+import { isSuperAdmin } from "@/lib/admin-access";
 
 export async function GET(
   _request: NextRequest,
@@ -40,10 +42,15 @@ export async function GET(
 }
 
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
+    const userId = await getUserIdFromRequest(request);
+    if (!userId) {
+      return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+    }
+
     const { slug } = await params;
     const admin = createServiceClient();
 
@@ -55,6 +62,30 @@ export async function DELETE(
 
     if (!file) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+
+    if (file.user_id && file.user_id !== userId) {
+      const { data: profile } = await admin
+        .from("profiles")
+        .select("email")
+        .eq("id", userId)
+        .maybeSingle();
+      const adminUser = await isSuperAdmin(userId, profile?.email);
+      if (!adminUser) {
+        return NextResponse.json({ error: "forbidden" }, { status: 403 });
+      }
+    }
+
+    if (!file.user_id) {
+      const { data: profile } = await admin
+        .from("profiles")
+        .select("email")
+        .eq("id", userId)
+        .maybeSingle();
+      const adminUser = await isSuperAdmin(userId, profile?.email);
+      if (!adminUser) {
+        return NextResponse.json({ error: "forbidden" }, { status: 403 });
+      }
     }
 
     if (file.r2_key) {

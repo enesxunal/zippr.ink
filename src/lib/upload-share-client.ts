@@ -3,6 +3,7 @@ import { mapUploadError } from "@/lib/slug";
 import { createDefaultUploadSlug } from "@/lib/slug";
 import { uploadFileBytes } from "@/lib/upload-storage";
 import { getUploadAuthHeaders } from "@/lib/upload-auth";
+import { rememberUploadSlug } from "@/lib/pending-upload-slugs";
 import { getPublicFileUrl } from "@/lib/app-url";
 
 export type UploadShareResult = {
@@ -20,12 +21,13 @@ export async function uploadFileForShare(
     ensureSession?: boolean;
   }
 ): Promise<UploadShareResult> {
-  const { customName, onProgress, tErr, ensureSession } = options;
+  const { customName, onProgress, tErr } = options;
   const slugToUse = createDefaultUploadSlug();
 
-  if (ensureSession) {
-    await createClient().auth.getUser();
-  }
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   onProgress?.(10);
   const authHeaders = await getUploadAuthHeaders();
@@ -67,6 +69,20 @@ export async function uploadFileForShare(
 
   const slug = initData.slug || slugToUse;
   onProgress?.(100);
+  rememberUploadSlug(completeData.slug || initData.slug || slug);
+
+  if (user) {
+    try {
+      await fetch("/api/files/claim", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...authHeaders },
+        credentials: "include",
+        body: JSON.stringify({ slugs: [slug] }),
+      });
+    } catch {
+      // non-blocking
+    }
+  }
 
   return {
     shareUrl:

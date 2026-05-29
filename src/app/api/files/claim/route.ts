@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/admin";
 import { getUserIdFromRequest } from "@/lib/auth-api";
+import { linkFilesToUser } from "@/lib/link-file-to-user";
 
-/** Links recent guest uploads (no owner) to the logged-in user — max 20, last 48h. */
+/** Sahipsiz yüklemeleri giriş yapmış kullanıcıya bağlar — en fazla 20, son 90 gün. */
 export async function POST(request: NextRequest) {
   try {
     const userId = await getUserIdFromRequest(request);
@@ -12,26 +13,45 @@ export async function POST(request: NextRequest) {
 
     const { slugs } = (await request.json()) as { slugs?: string[] };
     if (!slugs?.length) {
-      return NextResponse.json({ linked: 0 });
+      return NextResponse.json({ linked: 0, alreadyOwned: [] });
     }
 
-    const admin = createServiceClient();
-    const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    const cleanSlugs = slugs
+      .map((s) => s.trim().replace(/^.*\//, ""))
+      .filter(Boolean)
+      .slice(0, 20);
 
-    const { data, error } = await admin
+    const admin = createServiceClient();
+    const since = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
+
+    const { data: alreadyMine } = await admin
       .from("files")
-      .update({ user_id: userId })
-      .in("slug", slugs.slice(0, 20))
+      .select("slug")
+      .in("slug", cleanSlugs)
+      .eq("user_id", userId)
+      .eq("status", "active");
+
+    const { data: toClaim, error: fetchError } = await admin
+      .from("files")
+      .select("id, slug, file_size")
+      .in("slug", cleanSlugs)
       .is("user_id", null)
       .eq("status", "active")
-      .gte("created_at", since)
-      .select("slug");
+      .gte("created_at", since);
 
-    if (error) {
+    if (fetchError) {
       return NextResponse.json({ error: "claim_failed" }, { status: 500 });
     }
 
-    return NextResponse.json({ linked: data?.length ?? 0, slugs: data?.map((f) => f.slug) });
+    const linkedSlugs = toClaim?.length
+      ? await linkFilesToUser(admin, userId, toClaim)
+      : [];
+
+    return NextResponse.json({
+      linked: linkedSlugs.length,
+      slugs: linkedSlugs,
+      alreadyOwned: alreadyMine?.map((f) => f.slug) ?? [],
+    });
   } catch {
     return NextResponse.json({ error: "claim_failed" }, { status: 500 });
   }
