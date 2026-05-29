@@ -55,7 +55,11 @@ export async function handleAuthCallback(request: NextRequest, locale: string) {
     } = await supabase.auth.getUser();
 
     if (user && isAdminEmail(user.email)) {
-      return NextResponse.redirect(new URL(adminPath, origin));
+      const adminResponse = NextResponse.redirect(new URL(adminPath, origin));
+      response.cookies.getAll().forEach((cookie) => {
+        adminResponse.cookies.set(cookie);
+      });
+      return adminResponse;
     }
 
     return response;
