@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import { getGoogleOAuthStartPath } from "@/lib/auth-redirect";
+import { getAuthCallbackUrl } from "@/lib/auth-redirect";
 import { Link } from "@/i18n/routing";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -36,8 +36,32 @@ export default function RegisterPage() {
     setLoading(false);
   }
 
-  function handleGoogle() {
-    window.location.assign(getGoogleOAuthStartPath());
+  async function handleGoogle() {
+    setError("");
+    setLoading(true);
+    try {
+      const supabase = createClient();
+      const { data, error: oauthError } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: getAuthCallbackUrl(),
+          skipBrowserRedirect: true,
+        },
+      });
+      if (oauthError) {
+        setError(oauthError.message);
+        return;
+      }
+      if (data?.url) {
+        window.location.assign(data.url);
+        return;
+      }
+      setError(t("googleAuthError"));
+    } catch {
+      setError(t("googleAuthError"));
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
