@@ -3,6 +3,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { routing } from "./i18n/routing";
 import { createServerClient } from "@supabase/ssr";
 import { isAdminEmail } from "./lib/admin-constants";
+import { applyCookiesToResponse } from "./lib/supabase/route-cookies";
 
 const intlMiddleware = createMiddleware(routing);
 
@@ -40,6 +41,22 @@ function getLocaleFromPath(pathname: string) {
   return routing.defaultLocale;
 }
 
+function isPublicPath(pathWithoutLocale: string) {
+  if (pathWithoutLocale === "/" || pathWithoutLocale === "") return true;
+  if (
+    pathWithoutLocale === "/login" ||
+    pathWithoutLocale === "/register" ||
+    pathWithoutLocale === "/pricing" ||
+    pathWithoutLocale === "/enterprise"
+  ) {
+    return true;
+  }
+  if (pathWithoutLocale.startsWith("/tools/") || pathWithoutLocale.startsWith("/share/")) {
+    return true;
+  }
+  return false;
+}
+
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
@@ -49,7 +66,6 @@ export async function middleware(request: NextRequest) {
 
   const pathWithoutLocaleEarly = getPathWithoutLocale(pathname);
 
-  // OAuth: i18n rewrite yapma (/auth/callback ↔ /tr/auth/callback döngüsünü önler)
   if (
     pathWithoutLocaleEarly === "/auth/callback" ||
     pathWithoutLocaleEarly.startsWith("/auth/callback/")
@@ -62,7 +78,6 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Rewrite custom slugs: /3kareajans -> /de/share/3kareajans
   const slugMatch = pathname.match(/^\/([a-z0-9]+(?:-[a-z0-9]+)*)\/?$/);
   if (slugMatch) {
     const slug = slugMatch[1];
@@ -81,6 +96,19 @@ export async function middleware(request: NextRequest) {
   const intlResponse = intlMiddleware(request);
   const pathWithoutLocale = getPathWithoutLocale(pathname);
 
+  const isAdminLogin = pathWithoutLocale === "/admin/login";
+  const isAdminPanel =
+    pathWithoutLocale === "/admin" ||
+    (pathWithoutLocale.startsWith("/admin/") && !isAdminLogin);
+  const isProtected = protectedRoutes.some(
+    (r) => pathWithoutLocale === r || pathWithoutLocale.startsWith(r + "/")
+  );
+
+  // Ana sayfa ve giriş gibi herkese açık sayfalarda Supabase çağırma (site kilitlenmesin)
+  if (isPublicPath(pathWithoutLocale) && !isProtected && !isAdminPanel && !isAdminLogin) {
+    return intlResponse;
+  }
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -94,40 +122,39 @@ export async function middleware(request: NextRequest) {
       getAll() {
         return request.cookies.getAll();
       },
-      setAll(cookiesToSet: { name: string; value: string; options?: Record<string, unknown> }[]) {
+      setAll(
+        cookiesToSet: { name: string; value: string; options?: Record<string, unknown> }[]
+      ) {
         cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
         supabaseResponse = NextResponse.next({ request });
-        cookiesToSet.forEach(({ name, value, options }) =>
-          supabaseResponse.cookies.set(name, value, options)
-        );
+        applyCookiesToResponse(supabaseResponse, cookiesToSet);
       },
     },
   });
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let user: Awaited<ReturnType<typeof supabase.auth.getUser>>["data"]["user"] = null;
+  try {
+    const { data } = await supabase.auth.getUser();
+    user = data.user;
+  } catch {
+    return intlResponse;
+  }
 
   const locale = getLocaleFromPath(pathname);
-
-  const isAdminLogin = pathWithoutLocale === "/admin/login";
-  const isAdminPanel =
-    pathWithoutLocale === "/admin" ||
-    (pathWithoutLocale.startsWith("/admin/") && !isAdminLogin);
-
-  const isProtected = protectedRoutes.some(
-    (r) => pathWithoutLocale === r || pathWithoutLocale.startsWith(r + "/")
-  );
 
   async function userIsSuperAdmin() {
     if (!user) return false;
     if (isAdminEmail(user.email)) return true;
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-    return profile?.role === "super_admin";
+    try {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+      return profile?.role === "super_admin";
+    } catch {
+      return false;
+    }
   }
 
   if (isAdminLogin) {
