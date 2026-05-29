@@ -17,6 +17,7 @@ fi
 
 cp "$SITE" "${SITE}.bak.$(date +%Y%m%d%H%M%S)"
 
+export SITE
 python3 - <<'PY'
 from pathlib import Path
 import os
