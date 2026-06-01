@@ -13,7 +13,7 @@ export function AdminToslaSettings() {
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
   const [enabled, setEnabled] = useState(false);
-  const [testMode, setTestMode] = useState(true);
+  const [testMode, setTestMode] = useState(false);
   const [clientId, setClientId] = useState("");
   const [apiUser, setApiUser] = useState("");
   const [merchantKey, setMerchantKey] = useState("");
@@ -22,9 +22,10 @@ export function AdminToslaSettings() {
   const [hasPassword, setHasPassword] = useState(false);
 
   useEffect(() => {
-    fetch("/api/admin/settings/tosla")
-      .then((r) => r.json())
-      .then((d) => {
+    fetch("/api/admin/settings/tosla", { credentials: "include" })
+      .then(async (r) => {
+        const d = await r.json();
+        if (!r.ok) throw new Error(d.error || "load_failed");
         setEnabled(Boolean(d.enabled));
         setTestMode(Boolean(d.testMode));
         setClientId(d.clientId || "");
@@ -33,8 +34,9 @@ export function AdminToslaSettings() {
         setApiUrl(d.apiUrl || "https://entegrasyon.tosla.com/api/Payment/");
         setHasPassword(Boolean(d.hasPassword));
       })
+      .catch(() => setMsg(t("toslaError")))
       .finally(() => setLoading(false));
-  }, []);
+  }, [t]);
 
   async function save() {
     setSaving(true);
@@ -42,6 +44,7 @@ export function AdminToslaSettings() {
     const res = await fetch("/api/admin/settings/tosla", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body: JSON.stringify({
         enabled,
         testMode,
@@ -53,12 +56,19 @@ export function AdminToslaSettings() {
       }),
     });
     setSaving(false);
+    const data = await res.json().catch(() => ({}));
     if (res.ok) {
       setMsg(t("toslaSaved"));
       setApiPassword("");
       setHasPassword(true);
     } else {
-      setMsg(t("toslaError"));
+      setMsg(
+        data.error === "Forbidden"
+          ? t("toslaForbidden")
+          : data.error === "api_password_required"
+            ? t("toslaPasswordRequired")
+            : t("toslaError")
+      );
     }
   }
 
@@ -98,7 +108,11 @@ export function AdminToslaSettings() {
           </div>
           <div className="space-y-2">
             <Label>{t("toslaMerchantKey")}</Label>
-            <Input value={merchantKey} onChange={(e) => setMerchantKey(e.target.value)} />
+            <Input
+              value={merchantKey}
+              placeholder={t("toslaMerchantKeyOptional")}
+              onChange={(e) => setMerchantKey(e.target.value)}
+            />
           </div>
           <div className="space-y-2">
             <Label>{t("toslaApiPassword")}</Label>
@@ -114,7 +128,13 @@ export function AdminToslaSettings() {
             <Input value={apiUrl} onChange={(e) => setApiUrl(e.target.value)} />
           </div>
         </div>
-        {msg && <p className="text-sm text-violet-light">{msg}</p>}
+        {msg && (
+          <p
+            className={`text-sm ${msg === t("toslaSaved") ? "text-violet-light" : "text-red-400"}`}
+          >
+            {msg}
+          </p>
+        )}
         <Button onClick={save} disabled={saving}>
           {saving ? t("toslaSaving") : t("toslaSave")}
         </Button>
