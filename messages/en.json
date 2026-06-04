@@ -66,7 +66,15 @@
   "footer": {
     "tagline": "Upload, compress, convert and share — all in one place.",
     "company": "Company",
+    "blog": "Blog",
+    "faq": "FAQ",
     "rights": "All rights reserved."
+  },
+  "content": {
+    "blogTitle": "Blog",
+    "blogIntro": "Guides on file sharing, compression, conversion and PDF tools.",
+    "faqTitle": "Frequently Asked Questions",
+    "faqIntro": "180+ answers about zippr.ink tools, pricing, security and AI-friendly file workflows."
   },
   "auth": {
     "email": "Email",

@@ -66,7 +66,15 @@
   "footer": {
     "tagline": "Yükle, sıkıştır, dönüştür ve paylaş — hepsi tek yerde.",
     "company": "Şirket",
+    "blog": "Blog",
+    "faq": "S.S.S.",
     "rights": "Tüm hakları saklıdır."
+  },
+  "content": {
+    "blogTitle": "Blog",
+    "blogIntro": "Dosya paylaşımı, sıkıştırma, dönüştürme ve PDF hakkında rehberler.",
+    "faqTitle": "Sıkça Sorulan Sorular (S.S.S.)",
+    "faqIntro": "zippr.ink araçları, fiyatlandırma, güvenlik ve yapay zeka ile dosya işlemleri hakkında 180+ soru ve net cevap."
   },
   "auth": {
     "email": "E-posta",

@@ -5,6 +5,12 @@ import { GoogleAnalytics } from "@/components/google-analytics";
 
 export const metadata: Metadata = {
   title: "zippr.ink",
+  description:
+    "Dosya yükle, sıkıştır, dönüştür ve tek linkle paylaş. Ücretsiz dosya paylaşımı ve görsel araçları.",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://zippr.ink"),
+  verification: {
+    google: "EAHanvfqNDEdSb_VwOFHrnOnS9b8QwaFli57fTesy4U",
+  },
   icons: {
     icon: "/zippr-ink-fav.svg",
     apple: "/zippr-ink-fav.svg",
