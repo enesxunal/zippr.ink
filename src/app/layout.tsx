@@ -25,6 +25,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="tr" className="dark" suppressHydrationWarning>
       <head>
+        <meta
+          name="google-site-verification"
+          content="EAHanvfqNDEdSb_VwOFHrnOnS9b8QwaFli57fTesy4U"
+        />
         <GoogleAnalytics />
         <meta name="zippr-supabase-url" content={supabaseUrl} />
         <meta name="zippr-supabase-anon" content={supabaseAnon} />
