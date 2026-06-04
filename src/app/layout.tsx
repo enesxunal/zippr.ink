@@ -19,12 +19,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="tr" className="dark" suppressHydrationWarning>
       <head>
+        <GoogleAnalytics />
         <meta name="zippr-supabase-url" content={supabaseUrl} />
         <meta name="zippr-supabase-anon" content={supabaseAnon} />
         <meta name="zippr-app-url" content={appUrl} />
       </head>
       <body className="min-h-screen bg-black antialiased">
-        <GoogleAnalytics />
         <ChunkLoadRecovery />
         {children}
       </body>
