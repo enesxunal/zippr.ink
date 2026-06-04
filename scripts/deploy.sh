@@ -16,6 +16,15 @@ echo "[deploy] HEAD: $(git log -1 --oneline)"
 echo "[deploy] env check ..."
 bash scripts/check-env.sh .env.local
 
+# Küçük sunucuda Sentry webpack eklentisi build'i öldürür (OOM) — runtime Sentry açık kalır
+export SENTRY_DISABLE_WEBPACK="${SENTRY_DISABLE_WEBPACK:-1}"
+export LOW_MEMORY_BUILD="${LOW_MEMORY_BUILD:-1}"
+export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=1536}"
+export NEXT_TELEMETRY_DISABLED=1
+
+FREE_MB=$(free -m 2>/dev/null | awk '/^Mem:/{print $7}' || echo "?")
+echo "[deploy] kullanılabilir RAM: ${FREE_MB} MB (düşükse: bash scripts/setup-swap.sh)"
+
 echo "[deploy] npm install (site ayakta kalır, pm2 build sonrası yenilenir) ..."
 if ! npm ci; then
   echo "[deploy] npm ci başarısız (ENOTEMPTY vb.) — node_modules silinip yeniden deneniyor ..."
@@ -26,9 +35,16 @@ fi
 echo "[deploy] temiz build (.next + cache siliniyor) ..."
 rm -rf .next node_modules/.cache .next-build
 
-echo "[deploy] build ..."
+echo "[deploy] build (SENTRY_DISABLE_WEBPACK=$SENTRY_DISABLE_WEBPACK) ..."
 export NODE_ENV=production
-npm run build
+if ! npm run build; then
+  echo ""
+  echo "HATA: Build başarısız veya 'Killed' (bellek bitti)."
+  echo "  1) bash scripts/setup-swap.sh   # 2GB swap (bir kez)"
+  echo "  2) Tekrar: bash scripts/deploy.sh"
+  echo "  veya Mac'te build alıp .next klasörünü sunucuya kopyalayın."
+  exit 1
+fi
 
 if [ ! -d .next/static/chunks ]; then
   echo "HATA: .next/static/chunks yok — build bozuk"

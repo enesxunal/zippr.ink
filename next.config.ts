@@ -26,17 +26,33 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "100mb",
     },
     middlewareClientMaxBodySize: "100mb",
+    webpackMemoryOptimizations: true,
   },
 };
 
-export default withSentryConfig(withNextIntl(nextConfig), {
+const configWithIntl = withNextIntl(nextConfig);
+
+/** Küçük VPS'te build RAM yetmez — sunucuda SENTRY_DISABLE_WEBPACK=1 (runtime Sentry yine çalışır) */
+const skipSentryWebpack =
+  process.env.SENTRY_DISABLE_WEBPACK === "1" || process.env.LOW_MEMORY_BUILD === "1";
+
+const sentryOptions = {
   org: process.env.SENTRY_ORG || "zippr-uj",
   project: process.env.SENTRY_PROJECT || "javascript-nextjs",
-  silent: !process.env.CI,
-  disableLogger: true,
-  widenClientFileUpload: true,
+  silent: true,
+  widenClientFileUpload: false,
   authToken: process.env.SENTRY_AUTH_TOKEN,
   sourcemaps: {
-    disable: !process.env.SENTRY_AUTH_TOKEN,
+    disable: true,
   },
-});
+  webpack: {
+    treeshake: {
+      removeDebugLogging: true,
+    },
+    autoUploadSourceMaps: false,
+  },
+};
+
+export default skipSentryWebpack
+  ? configWithIntl
+  : withSentryConfig(configWithIntl, sentryOptions);
