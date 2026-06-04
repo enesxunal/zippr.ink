@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { ChunkLoadRecovery } from "@/components/chunk-load-recovery";
+import { GoogleAnalytics } from "@/components/google-analytics";
 
 export const metadata: Metadata = {
   title: "zippr.ink",
@@ -23,6 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="zippr-app-url" content={appUrl} />
       </head>
       <body className="min-h-screen bg-black antialiased">
+        <GoogleAnalytics />
         <ChunkLoadRecovery />
         {children}
       </body>
