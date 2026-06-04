@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
       amountTry: plan.price,
       orderId,
       customerEmail: user.email,
-      description: `zippr.ink ${planType}`,
+      description: `zippr.ink ${planType} — ₺${plan.price}`,
       returnUrl: `${baseUrl}/dashboard?payment=success`,
     });
 

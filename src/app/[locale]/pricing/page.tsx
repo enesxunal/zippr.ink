@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
-import { PLANS, PAID_PLANS } from "@/lib/plans";
+import { PLANS, PAID_PLANS, formatPlanPrice } from "@/lib/plans";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check } from "lucide-react";
@@ -43,7 +43,7 @@ export default function PricingPage() {
                 <CardTitle className="text-lg">{t(plan)}</CardTitle>
                 {plan !== "enterprise" ? (
                   <p className="text-2xl font-bold text-violet-light">
-                    {config.price === 0 ? "€0" : `€${config.price}`}
+                    {formatPlanPrice(config)}
                     {config.price > 0 && (
                       <span className="text-sm font-normal text-white/50">{t("perMonth")}</span>
                     )}

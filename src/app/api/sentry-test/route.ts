@@ -1,9 +1,16 @@
 import { NextResponse } from "next/server";
+import * as Sentry from "@sentry/nextjs";
+import { getSentryDsn } from "@/lib/sentry-config";
 
-/** Sentry doğrulama — sadece test için: GET /api/sentry-test */
-export async function GET() {
-  if (process.env.NODE_ENV === "production" && !process.env.SENTRY_TEST_ENABLED) {
-    return NextResponse.json({ error: "disabled" }, { status: 404 });
+/** Sentry doğrulama — POST /api/sentry-test */
+export async function POST() {
+  if (!getSentryDsn()) {
+    return NextResponse.json({ error: "sentry_not_configured" }, { status: 503 });
   }
-  throw new Error("Sentry test error — zippr.ink");
+
+  const err = new Error("Sentry server test error — zippr.ink");
+  Sentry.captureException(err);
+  await Sentry.flush(2000);
+
+  return NextResponse.json({ ok: true, message: "Server error sent to Sentry" });
 }

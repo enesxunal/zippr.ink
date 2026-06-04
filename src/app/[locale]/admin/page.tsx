@@ -73,7 +73,11 @@ export default async function AdminPage() {
 
   const kpis = [
     { label: t("totalUsers"), value: userCount || 0, icon: Users },
-    { label: t("totalRevenue"), value: `€${totalRevenue.toFixed(2)}`, icon: Euro },
+    {
+      label: t("totalRevenue"),
+      value: `₺${totalRevenue.toLocaleString("tr-TR")}`,
+      icon: Euro,
+    },
     {
       label: t("activeSubscriptions"),
       value: subscriptions?.length || 0,

@@ -2,8 +2,9 @@ import type { PlanType } from "@/types/database";
 
 export interface PlanConfig {
   name: PlanType;
+  /** Tosla'ya giden tutar (TRY, tam lira) */
   price: number;
-  currency: string;
+  currency: "TRY" | "EUR";
   storageLimit: number; // bytes
   expiryDays: number | null; // null = unlimited retention
   features: string[];
@@ -12,35 +13,36 @@ export interface PlanConfig {
 const GB = 1024 * 1024 * 1024;
 const TB = 1024 * GB;
 
+/** Fiyatlar TL — Tosla Sanal POS TRY (949) ile uyumlu */
 export const PLANS: Record<PlanType, PlanConfig> = {
   free: {
     name: "free",
     price: 0,
-    currency: "EUR",
+    currency: "TRY",
     storageLimit: 5 * GB,
     expiryDays: 7,
     features: ["5 GB Speicher", "7 Tage Dateiablauf", "Basis-Komprimierung"],
   },
   lite: {
     name: "lite",
-    price: 10,
-    currency: "EUR",
+    price: 399,
+    currency: "TRY",
     storageLimit: 50 * GB,
     expiryDays: null,
     features: ["50 GB Speicher", "Unbegrenzte Aufbewahrung", "Prioritäts-Komprimierung"],
   },
   standard: {
     name: "standard",
-    price: 25,
-    currency: "EUR",
+    price: 799,
+    currency: "TRY",
     storageLimit: 250 * GB,
     expiryDays: null,
     features: ["250 GB Speicher", "Unbegrenzte Aufbewahrung", "Benutzerdefinierte Links"],
   },
   professional: {
     name: "professional",
-    price: 50,
-    currency: "EUR",
+    price: 1499,
+    currency: "TRY",
     storageLimit: 1 * TB,
     expiryDays: null,
     features: ["1 TB Speicher", "Unbegrenzte Aufbewahrung", "Premium-Support"],
@@ -48,12 +50,20 @@ export const PLANS: Record<PlanType, PlanConfig> = {
   enterprise: {
     name: "enterprise",
     price: 0,
-    currency: "EUR",
+    currency: "TRY",
     storageLimit: 0,
     expiryDays: null,
     features: ["Individuelles Speichervolumen", "Mehrbenutzer-Zugang", "Dedizierter Support"],
   },
 };
+
+export function formatPlanPrice(config: PlanConfig): string {
+  if (config.price === 0) return "₺0";
+  if (config.currency === "TRY") {
+    return `₺${config.price.toLocaleString("tr-TR")}`;
+  }
+  return `€${config.price}`;
+}
 
 export function getPlanConfig(plan: PlanType): PlanConfig {
   return PLANS[plan];

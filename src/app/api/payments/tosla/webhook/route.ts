@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
       status: "active",
       plan_type: plan,
       price: amount || 0,
-      currency: "EUR",
+      currency: "TRY",
       billing_cycle: "monthly",
       gateway_transaction_id: transactionId,
       current_period_end: periodEnd.toISOString(),
