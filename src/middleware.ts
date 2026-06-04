@@ -55,6 +55,7 @@ function isPublicPath(pathWithoutLocale: string) {
   if (pathWithoutLocale.startsWith("/tools/") || pathWithoutLocale.startsWith("/share/")) {
     return true;
   }
+  if (pathWithoutLocale === "/sentry-example-page") return true;
   return false;
 }
 
@@ -66,6 +67,10 @@ export async function middleware(request: NextRequest) {
   }
 
   const pathWithoutLocaleEarly = getPathWithoutLocale(pathname);
+
+  if (pathWithoutLocaleEarly === "/sentry-example-page") {
+    return NextResponse.next();
+  }
 
   if (
     pathWithoutLocaleEarly === "/auth/callback" ||
