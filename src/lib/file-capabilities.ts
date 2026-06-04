@@ -25,7 +25,36 @@ export function getFileCategory(mime: string, name?: string): FileCategory {
   return "other";
 }
 
-export type ImageOutputFormat = "webp" | "png" | "jpeg";
+export type ImageOutputFormat = "webp" | "png" | "jpeg" | "gif" | "avif";
+
+/** Sıkıştırma: dosya hangi formattaysa aynı formatta kalır (format değiştirme = Dönüştür aracı). */
+export function getCompressOutputFormat(mime: string, name?: string): ImageOutputFormat {
+  const m = mime.toLowerCase().split(";")[0].trim();
+  const ext = name?.split(".").pop()?.toLowerCase() ?? "";
+
+  if (m === "image/png" || ext === "png") return "png";
+  if (m === "image/webp" || ext === "webp") return "webp";
+  if (m === "image/gif" || ext === "gif") return "gif";
+  if (m === "image/avif" || ext === "avif") return "avif";
+  if (
+    m === "image/jpeg" ||
+    m === "image/jpg" ||
+    ext === "jpg" ||
+    ext === "jpeg" ||
+    ext === "jpe"
+  ) {
+    return "jpeg";
+  }
+
+  // HEIC/TIFF/BMP: yeniden kodlama gerekir; mümkün olan en yakın yaygın format
+  if (m === "image/heic" || m === "image/heif" || ext === "heic" || ext === "heif") {
+    return "jpeg";
+  }
+  if (m === "image/tiff" || ext === "tiff" || ext === "tif") return "png";
+  if (m === "image/bmp" || ext === "bmp") return "png";
+
+  return "jpeg";
+}
 
 export function getConvertTargets(category: FileCategory): ImageOutputFormat[] {
   if (category === "image") return ["webp", "png", "jpeg"];

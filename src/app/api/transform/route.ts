@@ -49,6 +49,16 @@ export async function POST(request: NextRequest) {
         outputBuffer = await pipeline.jpeg({ quality, mozjpeg: true }).toBuffer();
         mimeType = "image/jpeg";
         break;
+      case "gif":
+        outputBuffer = await pipeline
+          .gif({ effort: compress ? 7 : 5 })
+          .toBuffer();
+        mimeType = "image/gif";
+        break;
+      case "avif":
+        outputBuffer = await pipeline.avif({ quality, effort: 4 }).toBuffer();
+        mimeType = "image/avif";
+        break;
       default:
         return NextResponse.json({ error: "Unsupported format" }, { status: 400 });
     }

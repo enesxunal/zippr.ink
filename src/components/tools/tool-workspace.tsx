@@ -42,6 +42,7 @@ import {
   getFileCategory,
   canCompress,
   canConvert,
+  getCompressOutputFormat,
   getConvertTargets,
   type ImageOutputFormat,
 } from "@/lib/file-capabilities";
@@ -185,7 +186,8 @@ export function ToolWorkspace({ mode }: ToolWorkspaceProps) {
           results.push(f);
           continue;
         }
-        results.push(await transformImage(f, "webp"));
+        const outFormat = getCompressOutputFormat(f.type, f.name);
+        results.push(await transformImage(f, outFormat));
       }
       setProcessedFiles(results);
       if (results.length === 1) {
@@ -238,7 +240,8 @@ export function ToolWorkspace({ mode }: ToolWorkspaceProps) {
     if (!res.ok) throw new Error("transform failed");
     const data = await res.json();
     const outputBytes = Uint8Array.from(atob(data.data), (c) => c.charCodeAt(0));
-    const ext = targetFormat === "jpeg" ? "jpg" : targetFormat;
+    const ext =
+      targetFormat === "jpeg" ? "jpg" : targetFormat === "avif" ? "avif" : targetFormat;
     const newName = input.name.replace(/\.[^.]+$/, "") + "." + ext;
     return new File([outputBytes], newName, { type: data.mimeType });
   }

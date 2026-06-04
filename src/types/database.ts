@@ -146,7 +146,7 @@ export interface Database {
   };
 }
 
-export type ImageFormat = "webp" | "png" | "jpeg";
+export type ImageFormat = "webp" | "png" | "jpeg" | "gif" | "avif";
 
 export interface UploadInitRequest {
   fileName: string;
