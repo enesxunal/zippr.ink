@@ -20,6 +20,7 @@ const reserved = [
   "share",
   "tools",
   "api",
+  "sentry-example-page",
 ];
 
 const protectedRoutes = ["/dashboard", "/settings"];
