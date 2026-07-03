@@ -68,6 +68,7 @@
     "company": "Company",
     "blog": "Blog",
     "faq": "FAQ",
+    "apiDocs": "API Documentation",
     "rights": "All rights reserved."
   },
   "content": {
@@ -108,7 +109,31 @@
     "addLink": "Add to panel",
     "linkAdded": "Link added to your panel.",
     "linkNotFound": "Link not found or already linked.",
-    "planLabel": "Plan: {plan}"
+    "planLabel": "Plan: {plan}",
+    "apiKeys": "API Keys"
+  },
+  "apiKeys": {
+    "title": "API Keys",
+    "intro": "Create keys to use the image optimization API. The full key is shown only once at creation.",
+    "createTitle": "Create new API key",
+    "keyName": "Key name",
+    "keyNamePlaceholder": "e.g. Production website",
+    "mode": "Mode",
+    "modeLive": "Live",
+    "modeTest": "Test",
+    "createButton": "Create key",
+    "createError": "Could not create API key.",
+    "keyShownOnce": "Copy this key now — it will not be shown again.",
+    "copyKey": "Copy key",
+    "listTitle": "Active keys",
+    "noKeys": "No API keys yet.",
+    "usageCount": "{count} requests",
+    "lastUsed": "Last used",
+    "neverUsed": "Never used",
+    "revoke": "Revoke",
+    "revokeConfirm": "Revoke this API key?",
+    "defaultKeyName": "API Key",
+    "readDocs": "API documentation"
   },
   "admin": {
     "title": "Super Admin",

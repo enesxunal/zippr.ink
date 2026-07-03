@@ -68,6 +68,7 @@
     "company": "Unternehmen",
     "blog": "Blog",
     "faq": "FAQ",
+    "apiDocs": "API-Dokumentation",
     "rights": "Alle Rechte vorbehalten."
   },
   "content": {
@@ -108,7 +109,31 @@
     "addLink": "Zum Panel hinzufügen",
     "linkAdded": "Link wurde hinzugefügt.",
     "linkNotFound": "Link nicht gefunden oder bereits verknüpft.",
-    "planLabel": "Plan: {plan}"
+    "planLabel": "Plan: {plan}",
+    "apiKeys": "API-Schlüssel"
+  },
+  "apiKeys": {
+    "title": "API-Schlüssel",
+    "intro": "Erstellen Sie Schlüssel für die Bildoptimierungs-API. Der vollständige Schlüssel wird nur einmal angezeigt.",
+    "createTitle": "Neuen API-Schlüssel erstellen",
+    "keyName": "Schlüsselname",
+    "keyNamePlaceholder": "z. B. Production website",
+    "mode": "Modus",
+    "modeLive": "Live",
+    "modeTest": "Test",
+    "createButton": "Schlüssel erstellen",
+    "createError": "API-Schlüssel konnte nicht erstellt werden.",
+    "keyShownOnce": "Schlüssel jetzt kopieren — er wird nicht erneut angezeigt.",
+    "copyKey": "Schlüssel kopieren",
+    "listTitle": "Aktive Schlüssel",
+    "noKeys": "Noch keine API-Schlüssel.",
+    "usageCount": "{count} Anfragen",
+    "lastUsed": "Zuletzt verwendet",
+    "neverUsed": "Nie verwendet",
+    "revoke": "Widerrufen",
+    "revokeConfirm": "Diesen API-Schlüssel widerrufen?",
+    "defaultKeyName": "API-Schlüssel",
+    "readDocs": "API-Dokumentation"
   },
   "admin": {
     "title": "Super Admin",

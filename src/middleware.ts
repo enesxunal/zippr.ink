@@ -23,6 +23,7 @@ const reserved = [
   "sentry-example-page",
   "blog",
   "sss",
+  "api-docs",
 ];
 
 const protectedRoutes = ["/dashboard", "/settings"];
@@ -60,6 +61,7 @@ function isPublicPath(pathWithoutLocale: string) {
   if (pathWithoutLocale === "/sentry-example-page") return true;
   if (pathWithoutLocale === "/blog" || pathWithoutLocale.startsWith("/blog/")) return true;
   if (pathWithoutLocale === "/sss") return true;
+  if (pathWithoutLocale === "/api-docs") return true;
   return false;
 }
 

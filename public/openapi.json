@@ -1,0 +1,151 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "zippr.ink Image Optimization API",
+    "version": "1.0.0",
+    "description": "Optimize images via upload or URL. Authenticate with Bearer API keys from the zippr.ink dashboard."
+  },
+  "servers": [{ "url": "https://zippr.ink" }],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "API key: zippr_live_… or zippr_test_…"
+      }
+    },
+    "schemas": {
+      "ApiSuccess": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": true },
+          "data": { "type": "object" }
+        }
+      },
+      "ApiError": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": false },
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": { "type": "string" },
+              "message": { "type": "string" },
+              "details": { "type": "object" }
+            }
+          }
+        }
+      },
+      "OptimizeResult": {
+        "type": "object",
+        "properties": {
+          "job_id": { "type": "string" },
+          "original_url": { "type": "string", "format": "uri" },
+          "optimized_url": { "type": "string", "format": "uri" },
+          "original_size_bytes": { "type": "integer" },
+          "optimized_size_bytes": { "type": "integer" },
+          "compression_ratio": { "type": "number" },
+          "format": { "type": "string" },
+          "width": { "type": "integer" },
+          "height": { "type": "integer" },
+          "status": { "type": "string", "enum": ["completed", "processing", "failed", "pending"] }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/api/v1/health": {
+      "get": {
+        "summary": "API health check",
+        "responses": {
+          "200": {
+            "description": "Service healthy",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiSuccess" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/images/optimize": {
+      "post": {
+        "summary": "Optimize image by file upload",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["file"],
+                "properties": {
+                  "file": { "type": "string", "format": "binary" },
+                  "quality": { "type": "integer", "minimum": 1, "maximum": 100 },
+                  "format": { "type": "string", "enum": ["original", "webp", "avif", "jpeg", "png"] },
+                  "max_width": { "type": "integer" },
+                  "max_height": { "type": "integer" },
+                  "strip_metadata": { "type": "boolean" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Optimization completed" },
+          "401": { "description": "Invalid API key" },
+          "429": { "description": "Rate limit exceeded" }
+        }
+      }
+    },
+    "/api/v1/images/optimize-url": {
+      "post": {
+        "summary": "Optimize image by URL",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["image_url"],
+                "properties": {
+                  "image_url": { "type": "string", "format": "uri" },
+                  "quality": { "type": "integer" },
+                  "format": { "type": "string" },
+                  "max_width": { "type": "integer", "nullable": true },
+                  "max_height": { "type": "integer", "nullable": true },
+                  "strip_metadata": { "type": "boolean" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Optimization completed" },
+          "400": { "description": "Invalid image URL" },
+          "401": { "description": "Invalid API key" }
+        }
+      }
+    },
+    "/api/v1/images/jobs/{job_id}": {
+      "get": {
+        "summary": "Get optimization job",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Job details" },
+          "404": { "description": "Job not found" }
+        }
+      }
+    }
+  }
+}

@@ -68,6 +68,7 @@
     "company": "Şirket",
     "blog": "Blog",
     "faq": "S.S.S.",
+    "apiDocs": "API Dokümantasyonu",
     "rights": "Tüm hakları saklıdır."
   },
   "content": {
@@ -108,7 +109,31 @@
     "addLink": "Panele ekle",
     "linkAdded": "Link panele eklendi.",
     "linkNotFound": "Link bulunamadı veya zaten bağlı.",
-    "planLabel": "Plan: {plan}"
+    "planLabel": "Plan: {plan}",
+    "apiKeys": "API Anahtarları"
+  },
+  "apiKeys": {
+    "title": "API Anahtarları",
+    "intro": "Görsel optimizasyon API'si için anahtar oluşturun. Anahtar yalnızca oluşturulduğunda bir kez gösterilir.",
+    "createTitle": "Yeni API anahtarı",
+    "keyName": "Anahtar adı",
+    "keyNamePlaceholder": "Örn. Production website",
+    "mode": "Mod",
+    "modeLive": "Canlı (live)",
+    "modeTest": "Test",
+    "createButton": "Anahtar oluştur",
+    "createError": "Anahtar oluşturulamadı.",
+    "keyShownOnce": "Bu anahtarı şimdi kopyalayın — bir daha gösterilmeyecek.",
+    "copyKey": "Anahtarı kopyala",
+    "listTitle": "Aktif anahtarlar",
+    "noKeys": "Henüz API anahtarı yok.",
+    "usageCount": "{count} istek",
+    "lastUsed": "Son kullanım",
+    "neverUsed": "Hiç kullanılmadı",
+    "revoke": "İptal et",
+    "revokeConfirm": "Bu API anahtarını iptal etmek istediğinize emin misiniz?",
+    "defaultKeyName": "API Anahtarı",
+    "readDocs": "API dokümantasyonu"
   },
   "admin": {
     "title": "Süper Admin",

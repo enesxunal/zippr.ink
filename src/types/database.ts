@@ -17,6 +17,55 @@ export type TicketPriority = "low" | "medium" | "high";
 
 export type QuoteStatus = "pending" | "contacted" | "closed";
 
+export type ApiKeyMode = "test" | "live";
+
+export type ImageJobStatus = "pending" | "processing" | "completed" | "failed";
+
+export type ImageJobSource = "upload" | "url";
+
+export interface ApiKeyRecord {
+  id: string;
+  user_id: string;
+  name: string;
+  key_prefix: string;
+  key_hash: string;
+  mode: ApiKeyMode;
+  last_used_at: string | null;
+  usage_count: number;
+  revoked_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ApiUsageRecord {
+  id: string;
+  user_id: string;
+  api_key_id: string | null;
+  endpoint: string;
+  method: string;
+  status_code: number;
+  created_at: string;
+}
+
+export interface ImageJobRecord {
+  id: string;
+  user_id: string;
+  api_key_id: string | null;
+  status: ImageJobStatus;
+  source_type: ImageJobSource;
+  original_url: string | null;
+  optimized_url: string | null;
+  original_size_bytes: number | null;
+  optimized_size_bytes: number | null;
+  compression_ratio: number | null;
+  format: string | null;
+  width: number | null;
+  height: number | null;
+  error_code: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Profile {
   id: string;
   email: string;
@@ -141,6 +190,26 @@ export interface Database {
         Row: CronLog;
         Insert: Omit<CronLog, "id" | "created_at"> & { id?: string };
         Update: Partial<CronLog>;
+      };
+      api_keys: {
+        Row: ApiKeyRecord;
+        Insert: Omit<ApiKeyRecord, "id" | "created_at" | "updated_at" | "last_used_at" | "usage_count" | "revoked_at"> & {
+          id?: string;
+          last_used_at?: string | null;
+          usage_count?: number;
+          revoked_at?: string | null;
+        };
+        Update: Partial<ApiKeyRecord>;
+      };
+      api_usage: {
+        Row: ApiUsageRecord;
+        Insert: Omit<ApiUsageRecord, "id" | "created_at"> & { id?: string };
+        Update: Partial<ApiUsageRecord>;
+      };
+      image_jobs: {
+        Row: ImageJobRecord;
+        Insert: Omit<ImageJobRecord, "id" | "created_at" | "updated_at"> & { id?: string };
+        Update: Partial<ImageJobRecord>;
       };
     };
   };

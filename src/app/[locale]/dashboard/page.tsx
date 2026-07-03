@@ -13,6 +13,7 @@ import { LogoutButton } from "@/components/auth/logout-button";
 import { ClaimRecentUpload } from "@/components/dashboard/claim-recent-upload";
 import { LinkSlugToAccount } from "@/components/dashboard/link-slug-to-account";
 import { ZipprLogo } from "@/components/brand/zippr-logo";
+import { DashboardNav } from "@/components/dashboard/dashboard-nav";
 import { listUserFiles } from "@/lib/dashboard-files";
 
 export default async function DashboardPage({
@@ -61,6 +62,8 @@ export default async function DashboardPage({
           <LogoutButton />
         </div>
       </div>
+
+      <DashboardNav />
 
       <div className="mb-8 grid gap-6 md:grid-cols-3">
         <Card className="md:col-span-2">

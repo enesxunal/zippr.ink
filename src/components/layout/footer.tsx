@@ -49,6 +49,11 @@ export async function Footer() {
             </p>
             <ul className="space-y-2 text-sm font-normal text-white/60">
               <li>
+                <Link href="/api-docs" className="transition hover:text-white">
+                  {tf("apiDocs")}
+                </Link>
+              </li>
+              <li>
                 <Link href="/blog" className="transition hover:text-white">
                   {tf("blog")}
                 </Link>
