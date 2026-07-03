@@ -68,7 +68,7 @@ function isPublicPath(pathWithoutLocale: string) {
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
-  if (pathname.startsWith("/api") || pathname.startsWith("/_next")) {
+  if (pathname.startsWith("/api/") || pathname.startsWith("/_next")) {
     return NextResponse.next();
   }
 
