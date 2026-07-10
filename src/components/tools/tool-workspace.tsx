@@ -35,7 +35,6 @@ import { uploadFileBytes } from "@/lib/upload-storage";
 import { getUploadAuthHeaders } from "@/lib/upload-auth";
 import {
   COMPRESS_ACCEPT,
-  SHARE_ACCEPT,
   IMAGE_ACCEPT,
 } from "@/lib/file-types";
 import {
@@ -111,7 +110,7 @@ export function ToolWorkspace({ mode }: ToolWorkspaceProps) {
 
   const acceptMap =
     mode === "share"
-      ? SHARE_ACCEPT
+      ? undefined
       : mode === "compress"
         ? COMPRESS_ACCEPT
         : IMAGE_ACCEPT;
@@ -130,9 +129,13 @@ export function ToolWorkspace({ mode }: ToolWorkspaceProps) {
         setError(tPdf("tooManyFiles", { max: limits.maxFiles }));
         return;
       }
+      if (mode === "share") {
+        setError(tTools("shareFileRejected"));
+        return;
+      }
       setError(tTools("fileTypeRejected"));
     },
-    [limits.maxFiles, tPdf, tTools]
+    [limits.maxFiles, mode, tPdf, tTools]
   );
 
   const onDrop = useCallback(

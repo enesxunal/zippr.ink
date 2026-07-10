@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { fileName, fileSize, mimeType, customSlug, customName, useCustomSlug } = body;
 
-    if (!fileName || !fileSize || !mimeType) {
+    if (!fileName || !fileSize) {
       return NextResponse.json({ error: "Missing fields" }, { status: 400 });
     }
 
@@ -66,7 +66,10 @@ export async function POST(request: NextRequest) {
     const r2Key = generateR2Key(userId, fileName);
     const expiresAt = getExpiryDate(planType, !userId);
 
-    const safeMime = mimeType || "application/octet-stream";
+    const safeMime =
+      typeof mimeType === "string" && mimeType.trim()
+        ? mimeType.trim()
+        : "application/octet-stream";
 
     let presignedUrl: string | null = null;
     if (isR2Configured()) {

@@ -130,10 +130,3 @@ export const COMPRESS_ACCEPT = {
   "application/x-pdf": [".pdf"],
   "application/acrobat": [".pdf"],
 };
-
-export const SHARE_ACCEPT = {
-  ...IMAGE_ACCEPT,
-  ...DOCUMENT_ACCEPT,
-  "video/*": [".mp4", ".mov", ".webm", ".mkv"],
-  "audio/*": [".mp3", ".wav", ".m4a"],
-};
