@@ -77,7 +77,10 @@ export function PdfWorkspace() {
   const validatePdfFiles = useCallback(
     (incoming: File[]) => {
       const pdfs = incoming.filter(
-        (f) => f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf")
+        (f) =>
+          f.type === "application/pdf" ||
+          f.type === "application/x-pdf" ||
+          f.name.toLowerCase().endsWith(".pdf")
       );
       if (!pdfs.length) {
         setError(tPdf("pdfOnly"));
@@ -150,7 +153,11 @@ export function PdfWorkspace() {
     onDrop,
     multiple: needsMultiple,
     maxSize: LIMITS.pdf.maxFileBytes,
-    accept: { "application/pdf": [".pdf"] },
+    accept: {
+      "application/pdf": [".pdf"],
+      "application/x-pdf": [".pdf"],
+      "application/acrobat": [".pdf"],
+    },
   });
 
   function removeFile(index: number) {

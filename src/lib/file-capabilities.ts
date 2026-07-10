@@ -1,27 +1,35 @@
-import { isImageMime } from "@/lib/file-types";
+import { isImageFile, isPdfFile, getExtension } from "@/lib/file-types";
 
 export type FileCategory = "image" | "pdf" | "archive" | "office" | "other";
 
 export function getFileCategory(mime: string, name?: string): FileCategory {
-  if (isImageMime(mime)) return "image";
-  if (mime === "application/pdf") return "pdf";
+  if (isImageFile(mime, name)) return "image";
+  if (isPdfFile(mime, name)) return "pdf";
+
+  const m = (mime || "").toLowerCase();
+  const ext = getExtension(name);
+
   if (
-    mime.includes("zip") ||
-    mime.includes("rar") ||
-    name?.match(/\.(zip|rar|7z)$/i)
+    m.includes("zip") ||
+    m.includes("rar") ||
+    ext === ".zip" ||
+    ext === ".rar" ||
+    ext === ".7z"
   ) {
     return "archive";
   }
+
   if (
-    mime.includes("word") ||
-    mime.includes("excel") ||
-    mime.includes("powerpoint") ||
-    mime.includes("presentation") ||
-    mime.includes("spreadsheet") ||
-    name?.match(/\.(docx?|xlsx?|pptx?)$/i)
+    m.includes("word") ||
+    m.includes("excel") ||
+    m.includes("powerpoint") ||
+    m.includes("presentation") ||
+    m.includes("spreadsheet") ||
+    /\.(docx?|xlsx?|pptx?)$/i.test(name || "")
   ) {
     return "office";
   }
+
   return "other";
 }
 
@@ -29,7 +37,7 @@ export type ImageOutputFormat = "webp" | "png" | "jpeg" | "gif" | "avif";
 
 /** Sıkıştırma: dosya hangi formattaysa aynı formatta kalır (format değiştirme = Dönüştür aracı). */
 export function getCompressOutputFormat(mime: string, name?: string): ImageOutputFormat {
-  const m = mime.toLowerCase().split(";")[0].trim();
+  const m = (mime || "").toLowerCase().split(";")[0].trim();
   const ext = name?.split(".").pop()?.toLowerCase() ?? "";
 
   if (m === "image/png" || ext === "png") return "png";
@@ -39,9 +47,12 @@ export function getCompressOutputFormat(mime: string, name?: string): ImageOutpu
   if (
     m === "image/jpeg" ||
     m === "image/jpg" ||
+    m === "image/pjpeg" ||
+    m === "image/jfif" ||
     ext === "jpg" ||
     ext === "jpeg" ||
-    ext === "jpe"
+    ext === "jpe" ||
+    ext === "jfif"
   ) {
     return "jpeg";
   }
@@ -50,8 +61,10 @@ export function getCompressOutputFormat(mime: string, name?: string): ImageOutpu
   if (m === "image/heic" || m === "image/heif" || ext === "heic" || ext === "heif") {
     return "jpeg";
   }
-  if (m === "image/tiff" || ext === "tiff" || ext === "tif") return "png";
-  if (m === "image/bmp" || ext === "bmp") return "png";
+  if (m === "image/tiff" || m === "image/tif" || ext === "tiff" || ext === "tif") {
+    return "png";
+  }
+  if (m === "image/bmp" || m === "image/x-ms-bmp" || ext === "bmp") return "png";
 
   return "jpeg";
 }

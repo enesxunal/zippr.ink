@@ -1,13 +1,11 @@
 import { getPresignedDownloadUrl, getPublicR2Url, isR2Configured } from "@/lib/r2";
-import { isImageMime } from "@/lib/file-types";
+import { isImageFile, isPdfFile } from "@/lib/file-types";
 
 export type PreviewKind = "image" | "pdf" | "none";
 
 export function getPreviewKind(mimeType: string, fileName?: string): PreviewKind {
-  if (isImageMime(mimeType)) return "image";
-  if (mimeType === "application/pdf" || fileName?.toLowerCase().endsWith(".pdf")) {
-    return "pdf";
-  }
+  if (isImageFile(mimeType, fileName)) return "image";
+  if (isPdfFile(mimeType, fileName)) return "pdf";
   return "none";
 }
 

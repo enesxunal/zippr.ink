@@ -2,7 +2,7 @@
 export const LIMITS = {
   compress: {
     maxFiles: 20,
-    maxFileBytes: 25 * 1024 * 1024,
+    maxFileBytes: 50 * 1024 * 1024,
     maxTotalBytes: 200 * 1024 * 1024,
   },
   share: {

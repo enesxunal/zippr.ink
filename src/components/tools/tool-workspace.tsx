@@ -118,6 +118,23 @@ export function ToolWorkspace({ mode }: ToolWorkspaceProps) {
 
   const limits = mode === "share" ? LIMITS.share : LIMITS.compress;
 
+  const onDropRejected = useCallback(
+    (rejections: { errors: readonly { code: string }[] }[]) => {
+      if (!rejections.length) return;
+      const codes = new Set(rejections.flatMap((r) => r.errors.map((e) => e.code)));
+      if (codes.has("file-too-large")) {
+        setError(tPdf("fileTooLarge"));
+        return;
+      }
+      if (codes.has("too-many-files")) {
+        setError(tPdf("tooManyFiles", { max: limits.maxFiles }));
+        return;
+      }
+      setError(tTools("fileTypeRejected"));
+    },
+    [limits.maxFiles, tPdf, tTools]
+  );
+
   const onDrop = useCallback(
     (accepted: File[]) => {
       if (!accepted.length) return;
@@ -171,19 +188,24 @@ export function ToolWorkspace({ mode }: ToolWorkspaceProps) {
     [mode, limits, tPdf, tTools]
   );
 
+  async function fileToBase64(input: File): Promise<string> {
+    const bytes = new Uint8Array(await input.arrayBuffer());
+    let binary = "";
+    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+    return btoa(binary);
+  }
+
   async function runCompress(batch: File[]) {
     setStep("processing");
     setError("");
     const results: File[] = [];
-    let hadPdf = false;
     try {
       for (let i = 0; i < batch.length; i++) {
         setBatchProgress(`${i + 1}/${batch.length}`);
         const f = batch[i];
         const cat = getFileCategory(f.type, f.name);
         if (cat === "pdf") {
-          hadPdf = true;
-          results.push(f);
+          results.push(await transformPdf(f));
           continue;
         }
         const outFormat = getCompressOutputFormat(f.type, f.name);
@@ -192,17 +214,14 @@ export function ToolWorkspace({ mode }: ToolWorkspaceProps) {
       setProcessedFiles(results);
       if (results.length === 1) {
         setProcessedFile(results[0]);
-        const cat = getFileCategory(batch[0].type, batch[0].name);
-        if (cat === "image") {
-          setSavingsPercent(
-            Math.round((1 - results[0].size / batch[0].size) * 100) || null
-          );
-        } else {
-          setSavingsPercent(null);
-        }
-      }
-      if (hadPdf && results.length === 1) {
-        setError("");
+        setSavingsPercent(
+          Math.round((1 - results[0].size / batch[0].size) * 100) || null
+        );
+      } else {
+        const before = batch.reduce((s, f) => s + f.size, 0);
+        const after = results.reduce((s, f) => s + f.size, 0);
+        setSavingsPercent(Math.round((1 - after / before) * 100) || null);
+        setProcessedFile(null);
       }
       setStep("result");
     } catch {
@@ -215,16 +234,31 @@ export function ToolWorkspace({ mode }: ToolWorkspaceProps) {
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
+    onDropRejected,
     multiple: isMulti,
     maxSize: limits.maxFileBytes,
     accept: acceptMap,
   });
 
+  async function transformPdf(input: File): Promise<File> {
+    const base64 = await fileToBase64(input);
+    const res = await fetch("/api/pdf", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "compress",
+        files: [base64],
+      }),
+    });
+    if (!res.ok) throw new Error("pdf compress failed");
+    const data = await res.json();
+    const outputBytes = Uint8Array.from(atob(data.data), (c) => c.charCodeAt(0));
+    const newName = input.name.replace(/\.[^.]+$/i, "") + "-compressed.pdf";
+    return new File([outputBytes], newName, { type: "application/pdf" });
+  }
+
   async function transformImage(input: File, targetFormat: ImageOutputFormat): Promise<File> {
-    const bytes = new Uint8Array(await input.arrayBuffer());
-    let binary = "";
-    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-    const base64 = btoa(binary);
+    const base64 = await fileToBase64(input);
 
     const res = await fetch("/api/transform", {
       method: "POST",
@@ -546,11 +580,7 @@ export function ToolWorkspace({ mode }: ToolWorkspaceProps) {
             <div className="space-y-2">
               {files.map((f, i) => {
                 const cat = getFileCategory(f.type, f.name);
-                const meta =
-                  `${tTools(`type_${cat}`)}` +
-                  (mode === "compress" && cat === "pdf"
-                    ? ` · ${tTools("pdfCompressSoon")}`
-                    : "");
+                const meta = tTools(`type_${cat}`);
                 return (
                   <div key={`${f.name}-${i}`} className="space-y-2">
                     <FileListRow

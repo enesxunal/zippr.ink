@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { FileIcon, FileText } from "lucide-react";
-import { isImageMime } from "@/lib/file-types";
+import { isImageFile, isPdfFile } from "@/lib/file-types";
 import { cn } from "@/lib/utils";
 
 interface RemoteFilePreviewProps {
@@ -14,8 +14,8 @@ interface RemoteFilePreviewProps {
 
 export function RemoteFilePreview({ url, mimeType, name, size = "lg" }: RemoteFilePreviewProps) {
   const [failed, setFailed] = useState(false);
-  const isImage = isImageMime(mimeType);
-  const isPdf = mimeType === "application/pdf";
+  const isImage = isImageFile(mimeType, name);
+  const isPdf = isPdfFile(mimeType, name);
 
   const box = cn(
     "relative mx-auto w-full overflow-hidden rounded-2xl border border-white/10 bg-black/40",

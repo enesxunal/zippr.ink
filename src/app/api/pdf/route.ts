@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PDFDocument } from "pdf-lib";
 import { LIMITS } from "@/lib/upload-limits";
+import { compressPdfBuffer } from "@/lib/pdf-compress";
 
 export const runtime = "nodejs";
 
-type PdfAction = "merge" | "split" | "split_all" | "delete" | "reorder";
+type PdfAction = "merge" | "split" | "split_all" | "delete" | "reorder" | "compress";
 
 function parsePageList(input: string, maxPage: number): number[] {
   const pages = new Set<number>();
@@ -77,6 +78,27 @@ export async function POST(request: NextRequest) {
 
     if (!files?.[0]) {
       return NextResponse.json({ error: "missing_file" }, { status: 400 });
+    }
+
+    if (action === "compress") {
+      const bytes = Buffer.from(files[0], "base64");
+      if (bytes.length > LIMITS.pdf.maxFileBytes) {
+        return NextResponse.json({ error: "file_too_large" }, { status: 400 });
+      }
+      const doc = await PDFDocument.load(bytes, { ignoreEncryption: true });
+      if (doc.getPageCount() > LIMITS.pdf.maxPages) {
+        return NextResponse.json({ error: "too_many_pages" }, { status: 400 });
+      }
+      const { buffer, imagesTouched } = await compressPdfBuffer(new Uint8Array(bytes));
+      return NextResponse.json({
+        data: Buffer.from(buffer).toString("base64"),
+        fileName: "compressed.pdf",
+        pageCount: doc.getPageCount(),
+        originalSize: bytes.length,
+        size: buffer.length,
+        imagesTouched,
+        savings: Math.max(0, Math.round((1 - buffer.length / bytes.length) * 100)),
+      });
     }
 
     const source = await loadPdf(files[0]);

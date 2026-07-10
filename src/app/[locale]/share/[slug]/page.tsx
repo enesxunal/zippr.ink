@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { createServiceClient } from "@/lib/supabase/admin";
 import { getFilePreviewUrl } from "@/lib/file-preview";
 import { formatBytes, formatDate } from "@/lib/utils";
-import { isImageMime } from "@/lib/file-types";
+import { isImageFile, isPdfFile } from "@/lib/file-types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Download, Clock } from "lucide-react";
@@ -59,7 +59,7 @@ export default async function SharePage({ params }: Props) {
   const { url: previewUrl } = await getFilePreviewUrl(file.r2_key, file.mime_type);
   const downloadHref = previewUrl || `/api/download/${slug}`;
   const hasPreview =
-    previewUrl && (isImageMime(file.mime_type) || file.mime_type === "application/pdf");
+    previewUrl && (isImageFile(file.mime_type, file.original_name) || isPdfFile(file.mime_type, file.original_name));
 
   return (
     <div className="relative flex min-h-[calc(100vh-4rem)] items-center justify-center px-4">

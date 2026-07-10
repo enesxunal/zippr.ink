@@ -25,7 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cn, formatBytes, isImageMime, slugify, isValidSlug } from "@/lib/utils";
+import { cn, formatBytes, isImageFile, slugify, isValidSlug } from "@/lib/utils";
 import { mapUploadError, createDefaultUploadSlug } from "@/lib/slug";
 import { uploadFileBytes } from "@/lib/upload-storage";
 import { createClient } from "@/lib/supabase/client";
@@ -51,7 +51,7 @@ export function UploadDropzone() {
   const [copied, setCopied] = useState(false);
   const [progress, setProgress] = useState(0);
 
-  const isImage = file ? isImageMime(file.type) : false;
+  const isImage = file ? isImageFile(file.type, file.name) : false;
 
   const onDrop = useCallback((accepted: File[]) => {
     const f = accepted[0];

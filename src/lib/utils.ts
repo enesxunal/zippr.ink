@@ -50,7 +50,7 @@ export function slugify(text: string): string {
     .slice(0, 64);
 }
 
-export { isImageMime } from "@/lib/file-types";
+export { isImageMime, isImageFile, isPdfFile } from "@/lib/file-types";
 
 export function getFileExtension(name: string): string {
   const parts = name.split(".");
