@@ -16,7 +16,7 @@ export async function getDailyApiUsageCount(userId: string): Promise<number> {
     .select("*", { count: "exact", head: true })
     .eq("user_id", userId)
     .gte("created_at", since);
-  if (error) return 0;
+  if (error) throw new Error("api_usage_unavailable");
   return count ?? 0;
 }
 
@@ -48,16 +48,5 @@ export async function logApiUsage(params: {
 
 export async function touchApiKey(apiKeyId: string): Promise<void> {
   const admin = createServiceClient();
-  const { data } = await admin
-    .from("api_keys")
-    .select("usage_count")
-    .eq("id", apiKeyId)
-    .single();
-  await admin
-    .from("api_keys")
-    .update({
-      last_used_at: new Date().toISOString(),
-      usage_count: Number(data?.usage_count ?? 0) + 1,
-    })
-    .eq("id", apiKeyId);
+  await admin.rpc("touch_api_key", { target_key: apiKeyId });
 }

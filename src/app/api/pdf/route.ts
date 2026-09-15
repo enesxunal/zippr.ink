@@ -59,6 +59,11 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "too_many_files" }, { status: 400 });
       }
 
+      const totalBytes = files.reduce((sum, b64) => sum + Buffer.byteLength(b64, "base64"), 0);
+      if (totalBytes > LIMITS.pdf.maxTotalBytes) {
+        return NextResponse.json({ error: "batch_too_large" }, { status: 400 });
+      }
+
       const merged = await PDFDocument.create();
       for (const b64 of files) {
         const doc = await loadPdf(b64);

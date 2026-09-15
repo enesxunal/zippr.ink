@@ -20,7 +20,6 @@ const reserved = [
   "share",
   "tools",
   "api",
-  "sentry-example-page",
   "blog",
   "sss",
   "api-docs",
@@ -58,14 +57,13 @@ function isPublicPath(pathWithoutLocale: string) {
   if (pathWithoutLocale.startsWith("/tools/") || pathWithoutLocale.startsWith("/share/")) {
     return true;
   }
-  if (pathWithoutLocale === "/sentry-example-page") return true;
   if (pathWithoutLocale === "/blog" || pathWithoutLocale.startsWith("/blog/")) return true;
   if (pathWithoutLocale === "/sss") return true;
   if (pathWithoutLocale === "/api-docs") return true;
   return false;
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   if (pathname.startsWith("/api/") || pathname.startsWith("/_next")) {
@@ -73,10 +71,6 @@ export async function middleware(request: NextRequest) {
   }
 
   const pathWithoutLocaleEarly = getPathWithoutLocale(pathname);
-
-  if (pathWithoutLocaleEarly === "/sentry-example-page") {
-    return NextResponse.next();
-  }
 
   if (
     pathWithoutLocaleEarly === "/auth/callback" ||

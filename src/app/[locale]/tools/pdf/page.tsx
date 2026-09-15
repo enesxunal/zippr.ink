@@ -1,5 +1,12 @@
+import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { PdfWorkspace } from "@/components/tools/pdf-workspace";
+import { pageSeo } from "@/lib/seo";
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  return pageSeo(locale, "pdf", "/tools/pdf");
+}
 
 export default async function PdfToolPage() {
   const t = await getTranslations("tools");

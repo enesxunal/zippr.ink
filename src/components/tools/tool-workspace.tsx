@@ -52,6 +52,7 @@ import { rememberUploadSlug } from "@/components/dashboard/claim-recent-upload";
 import { LocalFilePreview } from "@/components/preview/local-file-preview";
 import { FileListRow } from "@/components/preview/file-list-row";
 import { PdfPageGrid } from "@/components/preview/pdf-page-grid";
+import { fileToBase64 } from "@/lib/browser-file";
 
 export type ToolMode = "share" | "compress" | "convert";
 
@@ -70,9 +71,9 @@ function validateBatch(
     return tPdf("tooManyFiles", { max: limits.maxFiles });
   }
   const total = files.reduce((s, f) => s + f.size, 0);
-  if (total > limits.maxTotalBytes) return tPdf("batchTooLarge");
+  if (total > limits.maxTotalBytes) return tPdf("batchTooLargeDetailed", { mb: limits.maxTotalBytes / 1024 / 1024 });
   for (const f of files) {
-    if (f.size > limits.maxFileBytes) return tPdf("fileTooLarge");
+    if (f.size > limits.maxFileBytes) return tPdf("fileTooLarge", { mb: limits.maxFileBytes / 1024 / 1024 });
   }
   return null;
 }
@@ -122,7 +123,7 @@ export function ToolWorkspace({ mode }: ToolWorkspaceProps) {
       if (!rejections.length) return;
       const codes = new Set(rejections.flatMap((r) => r.errors.map((e) => e.code)));
       if (codes.has("file-too-large")) {
-        setError(tPdf("fileTooLarge"));
+        setError(tPdf("fileTooLarge", { mb: limits.maxFileBytes / 1024 / 1024 }));
         return;
       }
       if (codes.has("too-many-files")) {
@@ -135,11 +136,10 @@ export function ToolWorkspace({ mode }: ToolWorkspaceProps) {
       }
       setError(tTools("fileTypeRejected"));
     },
-    [limits.maxFiles, mode, tPdf, tTools]
+    [limits.maxFiles, limits.maxFileBytes, mode, tPdf, tTools]
   );
 
-  const onDrop = useCallback(
-    (accepted: File[]) => {
+  function onDrop(accepted: File[]) {
       if (!accepted.length) return;
       setError("");
 
@@ -187,16 +187,8 @@ export function ToolWorkspace({ mode }: ToolWorkspaceProps) {
       );
       setCustomSlug(createDefaultUploadSlug());
       setStep("configure");
-    },
-    [mode, limits, tPdf, tTools]
-  );
-
-  async function fileToBase64(input: File): Promise<string> {
-    const bytes = new Uint8Array(await input.arrayBuffer());
-    let binary = "";
-    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-    return btoa(binary);
   }
+
 
   async function runCompress(batch: File[]) {
     setStep("processing");
@@ -227,8 +219,8 @@ export function ToolWorkspace({ mode }: ToolWorkspaceProps) {
         setProcessedFile(null);
       }
       setStep("result");
-    } catch {
-      setError(tErr("uploadFailed"));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : tErr("uploadFailed"));
       setStep("idle");
     } finally {
       setBatchProgress("");
@@ -253,8 +245,14 @@ export function ToolWorkspace({ mode }: ToolWorkspaceProps) {
         files: [base64],
       }),
     });
-    if (!res.ok) throw new Error("pdf compress failed");
     const data = await res.json();
+    if (!res.ok) {
+      if (data.error === "too_many_pages") throw new Error(tPdf("tooManyPages"));
+      if (data.error === "file_too_large") {
+        throw new Error(tPdf("fileTooLarge", { mb: LIMITS.pdf.maxFileBytes / 1024 / 1024 }));
+      }
+      throw new Error(tErr("uploadFailed"));
+    }
     const outputBytes = Uint8Array.from(atob(data.data), (c) => c.charCodeAt(0));
     const newName = input.name.replace(/\.[^.]+$/i, "") + "-compressed.pdf";
     return new File([outputBytes], newName, { type: "application/pdf" });
@@ -387,14 +385,14 @@ export function ToolWorkspace({ mode }: ToolWorkspaceProps) {
       setSlugWasAdjusted(Boolean(initData.slugAdjusted));
       setProgress(40);
 
-      await uploadFileBytes(uploadFile, initData.fileId, initData.presignedUrl ?? null);
+      await uploadFileBytes(uploadFile, initData.fileId, initData.presignedUrl ?? null, initData.uploadToken);
       setProgress(80);
 
       const completeRes = await fetch("/api/upload/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json", ...authHeaders },
         credentials: "include",
-        body: JSON.stringify({ fileId: initData.fileId }),
+        body: JSON.stringify({ fileId: initData.fileId, uploadToken: initData.uploadToken }),
       });
 
       const completeData = await completeRes.json();
@@ -404,7 +402,7 @@ export function ToolWorkspace({ mode }: ToolWorkspaceProps) {
 
       const finalSlug = initData.slug || customSlug;
       setShareUrl(completeData.shareUrl || getPublicFileUrl(finalSlug));
-      if (finalSlug) rememberUploadSlug(finalSlug);
+      if (finalSlug) rememberUploadSlug(finalSlug, initData.uploadToken);
       setStep("done");
 
       if (isLoggedIn && finalSlug) {
@@ -711,6 +709,13 @@ export function ToolWorkspace({ mode }: ToolWorkspaceProps) {
         </div>
         <p className="text-lg font-medium text-white/90">{dropLabel}</p>
         <p className="text-sm text-white/50">{tTools(`desc_${mode}`)}</p>
+        <p className="max-w-xl text-xs text-white/35">
+          {mode === "compress"
+            ? tTools("limitsCompress", { files: LIMITS.compress.maxFiles, mb: LIMITS.compress.maxFileBytes / 1024 / 1024, total: LIMITS.compress.maxTotalBytes / 1024 / 1024, pages: LIMITS.pdf.maxPages })
+            : mode === "share"
+              ? tTools("limitsShare", { files: LIMITS.share.maxFiles, mb: LIMITS.share.maxFileBytes / 1024 / 1024, gb: LIMITS.share.maxTotalBytes / 1024 / 1024 / 1024 })
+              : tTools("limitsConvert", { mb: LIMITS.compress.maxFileBytes / 1024 / 1024 })}
+        </p>
       </div>
     </div>
   );

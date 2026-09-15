@@ -76,21 +76,32 @@ export async function fetchImageFromUrl(url: URL, maxBytes: number): Promise<{
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 15000);
   try {
-    const res = await fetch(url.toString(), {
-      signal: controller.signal,
-      redirect: "follow",
-      headers: { Accept: "image/*" },
-    });
-    if (!res.ok) throw new Error("unreachable");
-    const contentType = (res.headers.get("content-type") || "").split(";")[0].trim();
-    const len = Number(res.headers.get("content-length") || 0);
-    if (len > maxBytes) throw new Error("too_large");
-    const arrayBuf = await res.arrayBuffer();
-    if (arrayBuf.byteLength > maxBytes) throw new Error("too_large");
-    return {
-      buffer: Buffer.from(arrayBuf),
-      mimeType: contentType || "image/jpeg",
-    };
+    let current = url;
+    for (let redirectCount = 0; redirectCount <= 5; redirectCount += 1) {
+      await assertSafeImageUrl(current.toString());
+      const res = await fetch(current.toString(), {
+        signal: controller.signal,
+        redirect: "manual",
+        headers: { Accept: "image/*" },
+      });
+
+      if (res.status >= 300 && res.status < 400) {
+        const location = res.headers.get("location");
+        if (!location || redirectCount === 5) throw new Error("too_many_redirects");
+        const next = new URL(location, current);
+        current = await assertSafeImageUrl(next.toString());
+        continue;
+      }
+
+      if (!res.ok) throw new Error("unreachable");
+      const contentType = (res.headers.get("content-type") || "").split(";")[0].trim();
+      const len = Number(res.headers.get("content-length") || 0);
+      if (len > maxBytes) throw new Error("too_large");
+      const arrayBuf = await res.arrayBuffer();
+      if (arrayBuf.byteLength > maxBytes) throw new Error("too_large");
+      return { buffer: Buffer.from(arrayBuf), mimeType: contentType || "image/jpeg" };
+    }
+    throw new Error("too_many_redirects");
   } finally {
     clearTimeout(timeout);
   }

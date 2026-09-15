@@ -1,13 +1,19 @@
 import type { Metadata } from "next";
 import { Link } from "@/i18n/routing";
 import { API_DAILY_LIMITS } from "@/lib/api/v1/constants";
+import { createSeoMetadata, normalizeLocale } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "API Documentation | zippr.ink",
-  description:
-    "Integrate zippr.ink image optimization into your app. Upload images, optimize by URL, and retrieve compression stats via REST API.",
-  alternates: { canonical: "https://zippr.ink/api-docs" },
-};
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale: raw } = await params;
+  const locale = normalizeLocale(raw);
+  return createSeoMetadata({
+    locale,
+    path: "/api-docs",
+    title: "Image Optimization API Documentation | zippr.ink",
+    description: "Integrate zippr.ink image optimization into your app. Upload images, optimize by URL and retrieve compression statistics through the REST API.",
+    noindex: locale !== "en",
+  });
+}
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") || "https://zippr.ink";
 

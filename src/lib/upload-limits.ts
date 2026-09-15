@@ -13,7 +13,7 @@ export const LIMITS = {
   pdf: {
     maxFiles: 10,
     maxFileBytes: 50 * 1024 * 1024,
-    maxTotalBytes: 150 * 1024 * 1024,
+    maxTotalBytes: 60 * 1024 * 1024,
     maxPages: 200,
   },
 } as const;

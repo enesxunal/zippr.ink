@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import { API_VERSION } from "@/lib/api/v1/constants";
 import { apiSuccess } from "@/lib/api/v1/errors";
 

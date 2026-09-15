@@ -11,7 +11,6 @@ import { Link } from "@/i18n/routing";
 import { Button } from "@/components/ui/button";
 import { LogoutButton } from "@/components/auth/logout-button";
 import { ClaimRecentUpload } from "@/components/dashboard/claim-recent-upload";
-import { LinkSlugToAccount } from "@/components/dashboard/link-slug-to-account";
 import { ZipprLogo } from "@/components/brand/zippr-logo";
 import { DashboardNav } from "@/components/dashboard/dashboard-nav";
 import { listUserFiles } from "@/lib/dashboard-files";
@@ -49,7 +48,6 @@ export default async function DashboardPage({
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
       <ClaimRecentUpload />
-      <LinkSlugToAccount />
       <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <ZipprLogo size="sm" linked />

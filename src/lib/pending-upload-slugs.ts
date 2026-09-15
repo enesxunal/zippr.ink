@@ -1,47 +1,56 @@
-const SESSION_KEY = "zippr_pending_slugs";
-const LOCAL_KEY = "zippr_pending_slugs_local";
+const SESSION_KEY = "zippr_pending_upload_claims";
+const LOCAL_KEY = "zippr_pending_upload_claims_local";
 
-export function rememberUploadSlug(slug: string) {
-  if (!slug?.trim()) return;
-  const value = slug.trim();
+export type PendingUploadClaim = { slug: string; uploadToken: string };
 
+function read(store: Storage, key: string): PendingUploadClaim[] {
   try {
-    const raw = sessionStorage.getItem(SESSION_KEY);
-    const list: string[] = raw ? (JSON.parse(raw) as string[]) : [];
-    if (!list.includes(value)) list.unshift(value);
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify(list.slice(0, 10)));
+    const raw = store.getItem(key);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((item): item is PendingUploadClaim => {
+      return Boolean(
+        item &&
+          typeof item === "object" &&
+          typeof (item as PendingUploadClaim).slug === "string" &&
+          typeof (item as PendingUploadClaim).uploadToken === "string"
+      );
+    });
   } catch {
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify([value]));
-  }
-
-  try {
-    const raw = localStorage.getItem(LOCAL_KEY);
-    const list: string[] = raw ? (JSON.parse(raw) as string[]) : [];
-    if (!list.includes(value)) list.unshift(value);
-    localStorage.setItem(LOCAL_KEY, JSON.stringify(list.slice(0, 20)));
-  } catch {
-    localStorage.setItem(LOCAL_KEY, JSON.stringify([value]));
+    return [];
   }
 }
 
-export function getPendingUploadSlugs(): string[] {
-  const merged = new Set<string>();
+export function rememberUploadSlug(slug: string, uploadToken?: string) {
+  if (!slug?.trim() || !uploadToken?.trim()) return;
+  const claim = { slug: slug.trim(), uploadToken: uploadToken.trim() };
 
-  for (const key of [SESSION_KEY, LOCAL_KEY]) {
+  for (const [store, key, limit] of [
+    [sessionStorage, SESSION_KEY, 10],
+    [localStorage, LOCAL_KEY, 20],
+  ] as const) {
     try {
-      const store = key === SESSION_KEY ? sessionStorage : localStorage;
-      const raw = store.getItem(key);
-      if (!raw) continue;
-      const list = JSON.parse(raw) as string[];
-      list.forEach((s) => {
-        if (s?.trim()) merged.add(s.trim());
-      });
+      const list = read(store, key).filter((item) => item.slug !== claim.slug);
+      list.unshift(claim);
+      store.setItem(key, JSON.stringify(list.slice(0, limit)));
     } catch {
-      // ignore
+      // Storage can be disabled; claiming is a convenience feature only.
     }
   }
+}
 
-  return [...merged].slice(0, 20);
+export function getPendingUploadClaims(): PendingUploadClaim[] {
+  const merged = new Map<string, PendingUploadClaim>();
+  for (const [store, key] of [
+    [sessionStorage, SESSION_KEY],
+    [localStorage, LOCAL_KEY],
+  ] as const) {
+    for (const claim of read(store, key)) {
+      if (!merged.has(claim.slug)) merged.set(claim.slug, claim);
+    }
+  }
+  return [...merged.values()].slice(0, 20);
 }
 
 export function clearPendingUploadSlugs() {

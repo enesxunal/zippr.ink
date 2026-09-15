@@ -3,6 +3,7 @@ import {
   PutObjectCommand,
   DeleteObjectCommand,
   GetObjectCommand,
+  HeadObjectCommand,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
@@ -83,6 +84,17 @@ export async function uploadBufferToR2(
       ContentType: contentType || "application/octet-stream",
     })
   );
+}
+
+
+export async function getR2ObjectSize(key: string): Promise<number> {
+  const client = getR2Client();
+  const result = await client.send(
+    new HeadObjectCommand({ Bucket: getBucketName(), Key: key })
+  );
+  const size = Number(result.ContentLength ?? 0);
+  if (!Number.isFinite(size) || size <= 0) throw new Error("invalid_r2_object_size");
+  return size;
 }
 
 export async function deleteFromR2(key: string): Promise<void> {

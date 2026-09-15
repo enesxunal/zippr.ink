@@ -18,6 +18,7 @@ import {
   CheckCircle2,
   Copy,
   CloudUpload,
+  Minimize2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,20 +31,13 @@ import { FileListRow } from "@/components/preview/file-list-row";
 import { PdfPageGrid } from "@/components/preview/pdf-page-grid";
 import { uploadFileForShare } from "@/lib/upload-share-client";
 import { getUploadAuthHeaders } from "@/lib/upload-auth";
-import { rememberUploadSlug } from "@/components/dashboard/claim-recent-upload";
 import { useUser } from "@/hooks/use-user";
 import { mapUploadError } from "@/lib/slug";
+import { fileToBase64 } from "@/lib/browser-file";
 
-type PdfAction = "merge" | "split" | "split_all" | "delete" | "reorder";
+type PdfAction = "compress" | "merge" | "split" | "split_all" | "delete" | "reorder";
 type Step = "idle" | "processing" | "result" | "uploading" | "done";
 
-async function fileToBase64(file: File): Promise<string> {
-  const buf = await file.arrayBuffer();
-  let binary = "";
-  const bytes = new Uint8Array(buf);
-  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-  return btoa(binary);
-}
 
 function base64ToFile(base64: string, fileName: string, mime = "application/pdf"): File {
   const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
@@ -58,7 +52,7 @@ export function PdfWorkspace() {
   const { isLoggedIn } = useUser();
   const router = useRouter();
 
-  const [action, setAction] = useState<PdfAction>("merge");
+  const [action, setAction] = useState<PdfAction>("compress");
   const [step, setStep] = useState<Step>("idle");
   const [files, setFiles] = useState<File[]>([]);
   const [pageRange, setPageRange] = useState("1-");
@@ -71,6 +65,7 @@ export function PdfWorkspace() {
   const [copied, setCopied] = useState(false);
   const [progress, setProgress] = useState(0);
   const [slugWasAdjusted, setSlugWasAdjusted] = useState(false);
+  const [compressionInfo, setCompressionInfo] = useState<{ original: number; result: number; savings: number; imagesTouched: number } | null>(null);
 
   const needsMultiple = action === "merge";
 
@@ -94,12 +89,12 @@ export function PdfWorkspace() {
       }
       const total = list.reduce((s, f) => s + f.size, 0);
       if (total > LIMITS.pdf.maxTotalBytes) {
-        setError(tPdf("batchTooLarge"));
+        setError(tPdf("batchTooLargeDetailed", { mb: LIMITS.pdf.maxTotalBytes / 1024 / 1024 }));
         return [];
       }
       for (const f of list) {
         if (f.size > LIMITS.pdf.maxFileBytes) {
-          setError(tPdf("fileTooLarge"));
+          setError(tPdf("fileTooLarge", { mb: LIMITS.pdf.maxFileBytes / 1024 / 1024 }));
           return [];
         }
       }
@@ -136,7 +131,7 @@ export function PdfWorkspace() {
           }
           const total = combined.reduce((s, f) => s + f.size, 0);
           if (total > LIMITS.pdf.maxTotalBytes) {
-            setError(tPdf("batchTooLarge"));
+            setError(tPdf("batchTooLargeDetailed", { mb: LIMITS.pdf.maxTotalBytes / 1024 / 1024 }));
             return prev;
           }
           return combined;
@@ -149,8 +144,25 @@ export function PdfWorkspace() {
     [needsMultiple, validatePdfFiles, tPdf, loadPageCount]
   );
 
+  const onDropRejected = useCallback(
+    (rejections: { errors: readonly { code: string }[] }[]) => {
+      const codes = new Set(rejections.flatMap((r) => r.errors.map((e) => e.code)));
+      if (codes.has("file-too-large")) {
+        setError(tPdf("fileTooLarge", { mb: LIMITS.pdf.maxFileBytes / 1024 / 1024 }));
+        return;
+      }
+      if (codes.has("too-many-files")) {
+        setError(tPdf("tooManyFiles", { max: needsMultiple ? LIMITS.pdf.maxFiles : 1 }));
+        return;
+      }
+      setError(tPdf("pdfOnly"));
+    },
+    [needsMultiple, tPdf]
+  );
+
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
+    onDropRejected,
     multiple: needsMultiple,
     maxSize: LIMITS.pdf.maxFileBytes,
     accept: {
@@ -195,7 +207,8 @@ export function PdfWorkspace() {
       const map: Record<string, string> = {
         need_two_pdfs: tPdf("needTwo"),
         too_many_files: tPdf("tooManyFiles", { max: LIMITS.pdf.maxFiles }),
-        file_too_large: tPdf("fileTooLarge"),
+        batch_too_large: tPdf("batchTooLargeDetailed", { mb: LIMITS.pdf.maxTotalBytes / 1024 / 1024 }),
+        file_too_large: tPdf("fileTooLarge", { mb: LIMITS.pdf.maxFileBytes / 1024 / 1024 }),
         too_many_pages: tPdf("tooManyPages"),
         invalid_range: tPdf("invalidRange"),
         invalid_pages: tPdf("invalidPages"),
@@ -211,7 +224,24 @@ export function PdfWorkspace() {
     setError("");
     setStep("processing");
     try {
-      if (action === "merge") {
+      setCompressionInfo(null);
+      if (action === "compress") {
+        if (!files[0]) {
+          setError(tPdf("uploadFirst"));
+          setStep("idle");
+          return;
+        }
+        const encoded = await fileToBase64(files[0]);
+        const data = await runPdfApi({ action: "compress", files: [encoded] });
+        const result = base64ToFile(data.data, data.fileName);
+        setResultFile(result);
+        setCompressionInfo({
+          original: Number(data.originalSize || files[0].size),
+          result: Number(data.size || result.size),
+          savings: Number(data.savings || 0),
+          imagesTouched: Number(data.imagesTouched || 0),
+        });
+      } else if (action === "merge") {
         if (files.length < 2) {
           setError(tPdf("needTwo"));
           setStep("idle");
@@ -293,7 +323,6 @@ export function PdfWorkspace() {
       );
       setShareUrl(url);
       setSlugWasAdjusted(slugAdjusted);
-      rememberUploadSlug(slug);
       setStep("done");
 
       if (isLoggedIn) {
@@ -333,9 +362,11 @@ export function PdfWorkspace() {
     setPageOrder([]);
     setProgress(0);
     setSlugWasAdjusted(false);
+    setCompressionInfo(null);
   }
 
   const actions: { id: PdfAction; icon: typeof Merge; label: string; desc: string }[] = [
+    { id: "compress", icon: Minimize2, label: tPdf("compress"), desc: tPdf("compressDesc") },
     { id: "merge", icon: Merge, label: tPdf("merge"), desc: tPdf("mergeDesc") },
     { id: "split", icon: Scissors, label: tPdf("split"), desc: tPdf("splitDesc") },
     { id: "split_all", icon: Scissors, label: tPdf("splitAll"), desc: tPdf("splitAllDesc") },
@@ -393,6 +424,16 @@ export function PdfWorkspace() {
                 <p className="font-medium">{tPdf("resultReady")}</p>
                 <p className="truncate text-sm text-white/50">{resultFile.name}</p>
                 <p className="text-sm text-white/45">{formatBytes(resultFile.size)}</p>
+                {compressionInfo && (
+                  <p className="mt-1 text-sm text-white/60">
+                    {formatBytes(compressionInfo.original)} → {formatBytes(compressionInfo.result)}
+                    {compressionInfo.savings > 0 ? (
+                      <span className="ml-2 text-green-400">−{compressionInfo.savings}%</span>
+                    ) : (
+                      <span className="ml-2 text-amber-300">{tPdf("alreadyOptimized")}</span>
+                    )}
+                  </p>
+                )}
               </div>
             </div>
             {resultFile.type === "application/pdf" && (
@@ -442,6 +483,7 @@ export function PdfWorkspace() {
               setError("");
               setPageCount(0);
               setResultFile(null);
+              setCompressionInfo(null);
               setStep("idle");
             }}
             className={cn(
@@ -469,7 +511,7 @@ export function PdfWorkspace() {
         <FileText className="mx-auto mb-3 h-10 w-10 text-violet-light" />
         <p className="font-medium">{needsMultiple ? tPdf("dropMany") : tPdf("dropOne")}</p>
         <p className="mt-1 text-xs text-white/45">
-          {tPdf("limits", { max: LIMITS.pdf.maxFiles, mb: 50 })}
+          {tPdf("limitsDetailed", { max: needsMultiple ? LIMITS.pdf.maxFiles : 1, mb: LIMITS.pdf.maxFileBytes / 1024 / 1024, total: LIMITS.pdf.maxTotalBytes / 1024 / 1024, pages: LIMITS.pdf.maxPages })}
         </p>
       </div>
 
@@ -582,7 +624,7 @@ export function PdfWorkspace() {
             {tc("processing")}
           </>
         ) : (
-          tPdf("processNow")
+          action === "compress" ? tPdf("compressNow") : tPdf("processNow")
         )}
       </Button>
     </div>

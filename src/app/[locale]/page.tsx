@@ -1,11 +1,21 @@
+import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
+import { JsonLd } from "@/components/seo/json-ld";
+import { pageSeo, SITE_URL, normalizeLocale } from "@/lib/seo";
 import { Link } from "@/i18n/routing";
 import { ZipprLogo } from "@/components/brand/zippr-logo";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Upload, Zap, RefreshCw, FileText, ArrowRight, Shield, Sparkles } from "lucide-react";
 
-export default async function HomePage() {
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  return pageSeo(locale, "home", "");
+}
+
+export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale: rawLocale } = await params;
+  const locale = normalizeLocale(rawLocale);
   const t = await getTranslations("landing");
   const tTools = await getTranslations("tools");
   const tc = await getTranslations("common");
@@ -43,8 +53,20 @@ export default async function HomePage() {
     { icon: Zap, text: t("perkSimple") },
   ];
 
+  const appSchema = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: "zippr.ink",
+    url: SITE_URL,
+    applicationCategory: "UtilitiesApplication",
+    operatingSystem: "Web",
+    inLanguage: locale,
+    offers: { "@type": "Offer", price: "0", priceCurrency: "TRY" },
+  };
+
   return (
     <div className="relative overflow-hidden">
+      <JsonLd data={appSchema} />
       <div className="pointer-events-none absolute inset-0 bg-grid-pattern bg-grid opacity-30" />
       <div className="pointer-events-none absolute left-1/2 top-0 h-[600px] w-[900px] -translate-x-1/2 rounded-full bg-violet/25 blur-[100px]" />
 

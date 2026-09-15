@@ -28,10 +28,7 @@ export async function GET(
       return NextResponse.json({ error: "Expired" }, { status: 410 });
     }
 
-    await admin
-      .from("files")
-      .update({ download_count: file.download_count + 1 })
-      .eq("id", file.id);
+    await admin.rpc("increment_file_stat", { file_slug: slug, stat_type: "download" });
 
     const url = await getPresignedDownloadUrl(file.r2_key, 3600);
     return NextResponse.redirect(url);
@@ -99,20 +96,10 @@ export async function DELETE(
     await admin.from("files").update({ status: "deleted" }).eq("id", file.id);
 
     if (file.user_id) {
-      const { data: profile } = await admin
-        .from("profiles")
-        .select("storage_used")
-        .eq("id", file.user_id)
-        .single();
-
-      if (profile) {
-        await admin
-          .from("profiles")
-          .update({
-            storage_used: Math.max(0, Number(profile.storage_used) - Number(file.file_size)),
-          })
-          .eq("id", file.user_id);
-      }
+      await admin.rpc("adjust_storage_used", {
+        target_user: file.user_id,
+        delta: -Number(file.file_size),
+      });
     }
 
     return NextResponse.json({ success: true });

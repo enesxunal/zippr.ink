@@ -25,7 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cn, formatBytes, isImageFile, slugify, isValidSlug } from "@/lib/utils";
+import { cn, formatBytes, isImageFile, slugify } from "@/lib/utils";
 import { mapUploadError, createDefaultUploadSlug } from "@/lib/slug";
 import { uploadFileBytes } from "@/lib/upload-storage";
 import { createClient } from "@/lib/supabase/client";
@@ -139,7 +139,7 @@ export function UploadDropzone() {
 
       setProgress(55);
 
-      await uploadFileBytes(uploadFile, initData.fileId, initData.presignedUrl ?? null);
+      await uploadFileBytes(uploadFile, initData.fileId, initData.presignedUrl ?? null, initData.uploadToken);
 
       setProgress(80);
 
@@ -147,7 +147,7 @@ export function UploadDropzone() {
         method: "POST",
         headers: { "Content-Type": "application/json", ...authHeaders },
         credentials: "include",
-        body: JSON.stringify({ fileId: initData.fileId }),
+        body: JSON.stringify({ fileId: initData.fileId, uploadToken: initData.uploadToken }),
       });
 
       const completeData = await completeRes.json();
@@ -156,7 +156,7 @@ export function UploadDropzone() {
       setProgress(100);
       setShareUrl(completeData.shareUrl);
       if (completeData.slug || initData.slug) {
-        rememberUploadSlug(completeData.slug || initData.slug);
+        rememberUploadSlug(completeData.slug || initData.slug, initData.uploadToken);
       }
       if (user && (completeData.slug || initData.slug)) {
         try {

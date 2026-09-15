@@ -50,6 +50,8 @@ export function mapUploadError(
     init_failed: "uploadFailed",
     missing_fields: "uploadFailed",
     r2_upload_failed: "uploadCors",
+    r2_direct_upload_required: "uploadCors",
+    proxy_upload_too_large: "uploadCors",
     r2_not_configured: "uploadFailed",
     complete_failed: "uploadFailed",
     "Missing fields": "uploadFailed",

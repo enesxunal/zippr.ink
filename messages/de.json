@@ -212,8 +212,8 @@
     "convertTitle": "Format ändern",
     "convertSubtitle": "Lade eine Datei hoch — verfügbare Formate erscheinen automatisch",
     "pdfTitle": "PDF bearbeiten",
-    "pdfSubtitle": "Zusammenführen, teilen, löschen, sortieren — dann Link teilen",
-    "pdfCardDesc": "PDF bearbeiten — laden oder Share-Link erstellen",
+    "pdfSubtitle": "Komprimieren, zusammenfügen, teilen, löschen, sortieren — dann herunterladen oder Link erstellen",
+    "pdfCardDesc": "PDF komprimieren und bearbeiten — herunterladen oder Freigabelink erstellen",
     "dropShare": "Beliebige Dateitypen hier ablegen (auch mehrere)",
     "dropCompressAny": "Bilder oder PDFs ablegen (bis 20 Dateien)",
     "dropConvertAny": "Datei ablegen — passende Formate werden angezeigt",
@@ -252,7 +252,10 @@
     "registerHint": "Mit Konto bleiben Dateien dauerhaft in deinem Dashboard.",
     "anotherFile": "Weitere Datei",
     "imagesOnly": "Nur Bilddateien auf dieser Seite.",
-    "compressAuto": "Automatische Optimierung mit einem Klick."
+    "compressAuto": "Automatische Optimierung mit einem Klick.",
+    "limitsCompress": "Bis zu {files} Dateien · je {mb} MB · insgesamt {total} MB · PDFs bis {pages} Seiten",
+    "limitsShare": "Bis zu {files} Dateien · je {mb} MB · insgesamt {gb} GB",
+    "limitsConvert": "Eine Datei · bis zu {mb} MB"
   },
   "pdf": {
     "merge": "PDFs zusammenführen",
@@ -285,14 +288,20 @@
     "pdfOnly": "Nur PDF-Dateien",
     "tooManyFiles": "Maximal {max} PDFs",
     "batchTooLarge": "Gesamtgröße zu groß",
-    "fileTooLarge": "Eine PDF ist zu groß",
+    "fileTooLarge": "Die PDF überschreitet das Dateilimit von {mb} MB",
     "tooManyPages": "Zu viele Seiten (Limit 200)",
     "needTwo": "Mindestens 2 PDFs zum Zusammenführen",
     "uploadFirst": "Zuerst PDF hochladen",
     "invalidRange": "Ungültiger Seitenbereich",
     "invalidPages": "Ungültige Seitenangabe",
     "invalidOrder": "Ungültige Reihenfolge",
-    "cannotDeleteAll": "Mindestens eine Seite muss bleiben"
+    "cannotDeleteAll": "Mindestens eine Seite muss bleiben",
+    "compress": "PDF komprimieren",
+    "compressDesc": "Bildlastige PDF-Dateien verkleinern",
+    "limitsDetailed": "Bis zu {max} PDFs · je {mb} MB · insgesamt {total} MB · bis {pages} Seiten",
+    "batchTooLargeDetailed": "Die PDF-Gesamtgröße überschreitet das Limit von {mb} MB",
+    "alreadyOptimized": "Bereits optimiert; keine weitere Verkleinerung möglich",
+    "compressNow": "PDF komprimieren"
   },
   "pricing": {
     "title": "Preise",
@@ -305,11 +314,31 @@
     "contactUs": "Kontaktieren Sie uns",
     "currentPlan": "Aktueller Plan",
     "planFeatures": {
-      "free": ["5 GB Speicher", "Dateien nach 7 Tagen gelöscht", "Basis-Komprimierung"],
-      "lite": ["50 GB Speicher", "Dateien bleiben dauerhaft", "Prioritäts-Komprimierung"],
-      "standard": ["250 GB Speicher", "Dateien bleiben dauerhaft", "Eigene Link-Namen"],
-      "professional": ["1 TB Speicher", "Dateien bleiben dauerhaft", "Prioritäts-Support"],
-      "enterprise": ["Individueller Speicher", "Mehrbenutzer-Zugang", "Dedizierter Support"]
+      "free": [
+        "5 GB Speicher",
+        "Dateien nach 7 Tagen gelöscht",
+        "Basis-Komprimierung"
+      ],
+      "lite": [
+        "50 GB Speicher",
+        "Dateien bleiben dauerhaft",
+        "Prioritäts-Komprimierung"
+      ],
+      "standard": [
+        "250 GB Speicher",
+        "Dateien bleiben dauerhaft",
+        "Eigene Link-Namen"
+      ],
+      "professional": [
+        "1 TB Speicher",
+        "Dateien bleiben dauerhaft",
+        "Prioritäts-Support"
+      ],
+      "enterprise": [
+        "Individueller Speicher",
+        "Mehrbenutzer-Zugang",
+        "Dedizierter Support"
+      ]
     }
   },
   "enterprise": {

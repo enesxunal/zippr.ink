@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Link } from "@/i18n/routing";
 import { BLOG_POSTS, getPost } from "@/content/blog/posts";
 import { JsonLd } from "@/components/seo/json-ld";
+import { createSeoMetadata, localizedUrl, normalizeLocale, SITE_URL } from "@/lib/seo";
 
 export function generateStaticParams() {
   return BLOG_POSTS.map((p) => ({ slug: p.slug }));
@@ -11,22 +12,27 @@ export function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 }): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug, locale: rawLocale } = await params;
+  const locale = normalizeLocale(rawLocale);
   const post = getPost(slug);
   if (!post) return {};
-  return {
+  return createSeoMetadata({
+    locale,
+    path: `/blog/${slug}`,
     title: `${post.title} | zippr.ink Blog`,
     description: post.description,
-    alternates: { canonical: `https://zippr.ink/blog/${slug}` },
-  };
+    noindex: locale !== "tr",
+    type: "article",
+    publishedTime: post.date,
+  });
 }
 
 export default async function BlogPostPage({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 }) {
   const { slug } = await params;
   const post = getPost(slug);
@@ -39,7 +45,8 @@ export default async function BlogPostPage({
     description: post.description,
     datePublished: post.date,
     author: { "@type": "Organization", name: "zippr.ink" },
-    publisher: { "@type": "Organization", name: "zippr.ink" },
+    publisher: { "@type": "Organization", name: "zippr.ink", url: SITE_URL },
+    mainEntityOfPage: localizedUrl("tr", `/blog/${slug}`),
   };
 
   return (

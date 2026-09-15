@@ -1,4 +1,3 @@
-import { createClient } from "@/lib/supabase/client";
 import { mapUploadError } from "@/lib/slug";
 import { createDefaultUploadSlug } from "@/lib/slug";
 import { uploadFileBytes } from "@/lib/upload-storage";
@@ -24,11 +23,6 @@ export async function uploadFileForShare(
   const { customName, onProgress, tErr } = options;
   const slugToUse = createDefaultUploadSlug();
 
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
   onProgress?.(10);
   const authHeaders = await getUploadAuthHeaders();
 
@@ -52,14 +46,14 @@ export async function uploadFileForShare(
   }
 
   onProgress?.(40);
-  await uploadFileBytes(file, initData.fileId, initData.presignedUrl ?? null);
+  await uploadFileBytes(file, initData.fileId, initData.presignedUrl ?? null, initData.uploadToken);
   onProgress?.(80);
 
   const completeRes = await fetch("/api/upload/complete", {
     method: "POST",
     headers: { "Content-Type": "application/json", ...authHeaders },
     credentials: "include",
-    body: JSON.stringify({ fileId: initData.fileId }),
+    body: JSON.stringify({ fileId: initData.fileId, uploadToken: initData.uploadToken }),
   });
 
   const completeData = await completeRes.json();
@@ -69,20 +63,8 @@ export async function uploadFileForShare(
 
   const slug = initData.slug || slugToUse;
   onProgress?.(100);
-  rememberUploadSlug(completeData.slug || initData.slug || slug);
+  rememberUploadSlug(completeData.slug || initData.slug || slug, initData.uploadToken);
 
-  if (user) {
-    try {
-      await fetch("/api/files/claim", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", ...authHeaders },
-        credentials: "include",
-        body: JSON.stringify({ slugs: [slug] }),
-      });
-    } catch {
-      // non-blocking
-    }
-  }
 
   return {
     shareUrl:

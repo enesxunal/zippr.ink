@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import sharp from "sharp";
 import type { ImageFormat } from "@/types/database";
 import { optimizeImage } from "@/lib/image-optimizer/optimize-image";
+import { LIMITS } from "@/lib/upload-limits";
 
 export const runtime = "nodejs";
 
@@ -20,6 +21,9 @@ export async function POST(request: NextRequest) {
     }
 
     const inputBuffer = Buffer.from(imageData, "base64");
+    if (inputBuffer.length > LIMITS.compress.maxFileBytes) {
+      return NextResponse.json({ error: "file_too_large" }, { status: 413 });
+    }
     const inputMime =
       format === "png"
         ? "image/png"

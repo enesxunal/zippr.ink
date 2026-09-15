@@ -3,13 +3,19 @@ import { getTranslations } from "next-intl/server";
 import { FAQ_ITEMS, FAQ_CATEGORIES } from "@/content/faq/items";
 import { FaqAccordion } from "@/components/faq/faq-accordion";
 import { JsonLd } from "@/components/seo/json-ld";
+import { createSeoMetadata, normalizeLocale } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Sıkça Sorulan Sorular (S.S.S.) | zippr.ink",
-  description:
-    "Dosya paylaşımı, sıkıştırma, format dönüştürme, PDF ve zippr.ink hakkında 180+ soru ve net cevap. AI ve arama motorları için yapılandırılmış içerik.",
-  alternates: { canonical: "https://zippr.ink/sss" },
-};
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale: raw } = await params;
+  const locale = normalizeLocale(raw);
+  return createSeoMetadata({
+    locale,
+    path: "/sss",
+    title: "Sıkça Sorulan Sorular (S.S.S.) | zippr.ink",
+    description: "Dosya paylaşımı, sıkıştırma, format dönüştürme, PDF ve zippr.ink hakkında kapsamlı soru ve cevaplar.",
+    noindex: locale !== "tr",
+  });
+}
 
 export default async function SssPage() {
   const t = await getTranslations("content");

@@ -24,15 +24,14 @@ function loadEnv() {
   return env;
 }
 
-const ADMIN_EMAIL = "admin@zippr.ink";
-const ADMIN_PASSWORD = "zippr2026e";
-
 const env = loadEnv();
+const ADMIN_EMAIL = env.ADMIN_EMAIL || "admin@zippr.ink";
+const ADMIN_PASSWORD = env.ADMIN_PASSWORD;
 const url = env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceKey = env.SUPABASE_SERVICE_ROLE_KEY;
 
-if (!url || !serviceKey) {
-  console.error("Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in .env.local");
+if (!url || !serviceKey || !ADMIN_PASSWORD || ADMIN_PASSWORD.length < 14) {
+  console.error("Missing Supabase config or ADMIN_PASSWORD (minimum 14 characters) in .env.local");
   process.exit(1);
 }
 
@@ -104,7 +103,7 @@ async function main() {
   console.log("\n--- Admin giriş (local) ---");
   console.log("URL:      http://localhost:3000/admin/login");
   console.log("E-posta: ", ADMIN_EMAIL);
-  console.log("Şifre:   ", ADMIN_PASSWORD);
+  console.log("Şifre:    .env.local içindeki ADMIN_PASSWORD kullanıldı (çıktıda gizlendi)");
 }
 
 main().catch((e) => {

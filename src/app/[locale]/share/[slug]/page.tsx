@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { createServiceClient } from "@/lib/supabase/admin";
@@ -10,6 +11,11 @@ import { Download, Clock } from "lucide-react";
 import { ZipprLogo } from "@/components/brand/zippr-logo";
 import { Link } from "@/i18n/routing";
 import { RemoteFilePreview } from "@/components/preview/remote-file-preview";
+
+
+export function generateMetadata(): Metadata {
+  return { robots: { index: false, follow: false, nocache: true } };
+}
 
 interface Props {
   params: Promise<{ locale: string; slug: string }>;
@@ -48,12 +54,9 @@ export default async function SharePage({ params }: Props) {
   }
 
   try {
-    await admin
-      .from("files")
-      .update({ click_count: file.click_count + 1 })
-      .eq("id", file.id);
+    await admin.rpc("increment_file_stat", { file_slug: slug, stat_type: "click" });
   } catch {
-    // non-blocking
+    // Analytics must never block a public share page.
   }
 
   const { url: previewUrl } = await getFilePreviewUrl(file.r2_key, file.mime_type);

@@ -212,8 +212,8 @@
     "convertTitle": "Dönüştür",
     "convertSubtitle": "Dosya yükle — uygun formatlar otomatik çıkar",
     "pdfTitle": "PDF düzenle",
-    "pdfSubtitle": "Birleştir, böl, sil, sırala — sonra link oluştur",
-    "pdfCardDesc": "PDF düzenle — indir veya paylaşım linki oluştur",
+    "pdfSubtitle": "Sıkıştır, birleştir, böl, sil, sırala — sonra indir veya link oluştur",
+    "pdfCardDesc": "PDF sıkıştır ve düzenle — indir veya paylaşım linki oluştur",
     "dropShare": "Her türlü dosyayı buraya sürükle (çoklu olabilir)",
     "dropCompressAny": "Görsel veya PDF (en fazla 20 dosya)",
     "dropConvertAny": "Dosya bırak — uygun formatlar listelenir",
@@ -252,7 +252,10 @@
     "registerHint": "Hesabınla dosyalar panelinde kalır.",
     "anotherFile": "Başka dosya",
     "imagesOnly": "Bu sayfada sadece görseller.",
-    "compressAuto": "Tek tıkla otomatik optimizasyon."
+    "compressAuto": "Tek tıkla otomatik optimizasyon.",
+    "limitsCompress": "En fazla {files} dosya · dosya başı {mb} MB · toplam {total} MB · PDF en fazla {pages} sayfa",
+    "limitsShare": "En fazla {files} dosya · dosya başı {mb} MB · toplam {gb} GB",
+    "limitsConvert": "Tek dosya · en fazla {mb} MB"
   },
   "pdf": {
     "merge": "PDF birleştir",
@@ -285,14 +288,20 @@
     "pdfOnly": "Sadece PDF dosyası",
     "tooManyFiles": "En fazla {max} PDF",
     "batchTooLarge": "Toplam boyut çok büyük",
-    "fileTooLarge": "Bir PDF çok büyük",
+    "fileTooLarge": "PDF dosyası {mb} MB sınırını aşıyor",
     "tooManyPages": "Çok fazla sayfa (limit 200)",
     "needTwo": "Birleştirmek için en az 2 PDF",
     "uploadFirst": "Önce PDF yükle",
     "invalidRange": "Geçersiz sayfa aralığı",
     "invalidPages": "Geçersiz sayfa listesi",
     "invalidOrder": "Geçersiz sıralama",
-    "cannotDeleteAll": "En az bir sayfa kalmalı"
+    "cannotDeleteAll": "En az bir sayfa kalmalı",
+    "compress": "PDF sıkıştır",
+    "compressDesc": "Görsel ağırlıklı PDF boyutunu küçült",
+    "limitsDetailed": "En fazla {max} PDF · dosya başı {mb} MB · toplam {total} MB · en fazla {pages} sayfa",
+    "batchTooLargeDetailed": "Toplam PDF boyutu {mb} MB sınırını aşıyor",
+    "alreadyOptimized": "Dosya zaten optimize edilmiş; ek küçülme olmadı",
+    "compressNow": "PDF’i sıkıştır"
   },
   "pricing": {
     "title": "Fiyatlar",
@@ -305,11 +314,31 @@
     "contactUs": "Bize Ulaşın",
     "currentPlan": "Mevcut Plan",
     "planFeatures": {
-      "free": ["5 GB depolama", "7 gün sonra dosya silinir", "Temel sıkıştırma"],
-      "lite": ["50 GB depolama", "Dosyalar kalıcı", "Öncelikli sıkıştırma"],
-      "standard": ["250 GB depolama", "Dosyalar kalıcı", "Özel link adı"],
-      "professional": ["1 TB depolama", "Dosyalar kalıcı", "Öncelikli destek"],
-      "enterprise": ["İstediğin depolama", "Çoklu kullanıcı", "Özel destek"]
+      "free": [
+        "5 GB depolama",
+        "7 gün sonra dosya silinir",
+        "Temel sıkıştırma"
+      ],
+      "lite": [
+        "50 GB depolama",
+        "Dosyalar kalıcı",
+        "Öncelikli sıkıştırma"
+      ],
+      "standard": [
+        "250 GB depolama",
+        "Dosyalar kalıcı",
+        "Özel link adı"
+      ],
+      "professional": [
+        "1 TB depolama",
+        "Dosyalar kalıcı",
+        "Öncelikli destek"
+      ],
+      "enterprise": [
+        "İstediğin depolama",
+        "Çoklu kullanıcı",
+        "Özel destek"
+      ]
     }
   },
   "enterprise": {

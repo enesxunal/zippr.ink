@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations, useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
 import { getAuthCallbackUrl } from "@/lib/auth-redirect";
-import { Link } from "@/i18n/routing";
+import { Link, useRouter } from "@/i18n/routing";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,7 +14,7 @@ import { ZipprLogo } from "@/components/brand/zippr-logo";
 export default function RegisterPage() {
   const t = useTranslations("auth");
   const tc = useTranslations("common");
-  const locale = useLocale();
+  const router = useRouter();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -32,7 +32,7 @@ export default function RegisterPage() {
       options: { data: { full_name: fullName } },
     });
     if (error) setError(error.message);
-    else window.location.href = "/dashboard";
+    else router.push("/dashboard");
     setLoading(false);
   }
 

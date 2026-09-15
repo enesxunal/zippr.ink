@@ -212,8 +212,8 @@
     "convertTitle": "Convert",
     "convertSubtitle": "Upload a file — available formats appear automatically",
     "pdfTitle": "Edit PDF",
-    "pdfSubtitle": "Merge, split, delete, reorder — then share a link",
-    "pdfCardDesc": "Edit PDFs — download or create a share link",
+    "pdfSubtitle": "Compress, merge, split, delete, reorder — then download or create a link",
+    "pdfCardDesc": "Compress and edit PDFs — download or create a share link",
     "dropShare": "Drop any file type here (multiple allowed)",
     "dropCompressAny": "Drop images or PDFs (up to 20 files)",
     "dropConvertAny": "Drop a file — matching formats will show",
@@ -252,7 +252,10 @@
     "registerHint": "With an account, files stay in your dashboard.",
     "anotherFile": "Another file",
     "imagesOnly": "Images only on this page.",
-    "compressAuto": "Automatic optimization in one click."
+    "compressAuto": "Automatic optimization in one click.",
+    "limitsCompress": "Up to {files} files · {mb} MB each · {total} MB total · PDFs up to {pages} pages",
+    "limitsShare": "Up to {files} files · {mb} MB each · {gb} GB total",
+    "limitsConvert": "One file · up to {mb} MB"
   },
   "pdf": {
     "merge": "Merge PDFs",
@@ -285,14 +288,20 @@
     "pdfOnly": "PDF files only",
     "tooManyFiles": "Maximum {max} PDFs",
     "batchTooLarge": "Total size too large",
-    "fileTooLarge": "One PDF is too large",
+    "fileTooLarge": "PDF exceeds the {mb} MB file limit",
     "tooManyPages": "Too many pages (limit 200)",
     "needTwo": "At least 2 PDFs to merge",
     "uploadFirst": "Upload a PDF first",
     "invalidRange": "Invalid page range",
     "invalidPages": "Invalid page list",
     "invalidOrder": "Invalid page order",
-    "cannotDeleteAll": "At least one page must remain"
+    "cannotDeleteAll": "At least one page must remain",
+    "compress": "Compress PDF",
+    "compressDesc": "Reduce the size of image-heavy PDF files",
+    "limitsDetailed": "Up to {max} PDFs · {mb} MB each · {total} MB total · up to {pages} pages",
+    "batchTooLargeDetailed": "Total PDF size exceeds the {mb} MB limit",
+    "alreadyOptimized": "Already optimized; no additional size reduction was possible",
+    "compressNow": "Compress PDF"
   },
   "pricing": {
     "title": "Pricing",
@@ -305,11 +314,31 @@
     "contactUs": "Contact Us",
     "currentPlan": "Current Plan",
     "planFeatures": {
-      "free": ["5 GB storage", "Files deleted after 7 days", "Basic compression"],
-      "lite": ["50 GB storage", "Files kept forever", "Priority compression"],
-      "standard": ["250 GB storage", "Files kept forever", "Custom link names"],
-      "professional": ["1 TB storage", "Files kept forever", "Priority support"],
-      "enterprise": ["Custom storage", "Multi-user access", "Dedicated support"]
+      "free": [
+        "5 GB storage",
+        "Files deleted after 7 days",
+        "Basic compression"
+      ],
+      "lite": [
+        "50 GB storage",
+        "Files kept forever",
+        "Priority compression"
+      ],
+      "standard": [
+        "250 GB storage",
+        "Files kept forever",
+        "Custom link names"
+      ],
+      "professional": [
+        "1 TB storage",
+        "Files kept forever",
+        "Priority support"
+      ],
+      "enterprise": [
+        "Custom storage",
+        "Multi-user access",
+        "Dedicated support"
+      ]
     }
   },
   "enterprise": {

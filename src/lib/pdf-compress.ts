@@ -39,13 +39,27 @@ async function recompressImageBytes(
   bytes: Uint8Array,
   width: number,
   height: number,
-  colorSpace: string | null
+  colorSpace: string | null,
+  rawPixels = false
 ): Promise<{ data: Uint8Array; filter: "DCTDecode" } | null> {
   try {
-    let pipeline = sharp(Buffer.from(bytes), {
-      failOn: "none",
-      limitInputPixels: 268402689,
-    });
+    let pipeline: ReturnType<typeof sharp>;
+    if (rawPixels) {
+      const channels = colorSpace === "DeviceGray" ? 1 : colorSpace === "DeviceRGB" ? 3 : 0;
+      if (!channels || width <= 0 || height <= 0) return null;
+      const expected = width * height * channels;
+      if (bytes.length !== expected) return null;
+      pipeline = sharp(Buffer.from(bytes), {
+        raw: { width, height, channels: channels as 1 | 3 },
+        failOn: "none",
+        limitInputPixels: 268402689,
+      });
+    } else {
+      pipeline = sharp(Buffer.from(bytes), {
+        failOn: "none",
+        limitInputPixels: 268402689,
+      });
+    }
 
     const meta = await pipeline.metadata();
     const w = meta.width || width;
@@ -120,7 +134,7 @@ export async function compressPdfBuffer(
 
     if (!raw.length || raw.length < 512) continue;
 
-    const recompressed = await recompressImageBytes(raw, width, height, colorSpace);
+    const recompressed = await recompressImageBytes(raw, width, height, colorSpace, isFlateFilter(filter));
     if (!recompressed) continue;
 
     try {

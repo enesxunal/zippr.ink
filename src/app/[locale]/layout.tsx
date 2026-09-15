@@ -1,14 +1,32 @@
+import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
-import type { UserRole } from "@/types/database";
-import { createClient } from "@/lib/supabase/server";
+import { ChunkLoadRecovery } from "@/components/chunk-load-recovery";
+import { GoogleAnalytics } from "@/components/google-analytics";
+import { SiteJsonLd } from "@/components/seo/site-json-ld";
+import { SITE_URL, normalizeLocale, pageSeo } from "@/lib/seo";
+import "../globals.css";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale: rawLocale } = await params;
+  const locale = normalizeLocale(rawLocale);
+  return {
+    ...pageSeo(locale, "home", ""),
+    metadataBase: new URL(SITE_URL),
+    verification: { google: "EAHanvfqNDEdSb_VwOFHrnOnS9b8QwaFli57fTesy4U" },
+    icons: {
+      icon: "/zippr-ink-fav.svg",
+      apple: "/zippr-ink-fav.svg",
+    },
+  };
 }
 
 export default async function LocaleLayout({
@@ -27,35 +45,29 @@ export default async function LocaleLayout({
   setRequestLocale(locale);
   const messages = await getMessages();
 
-  let headerUser: { email: string; role?: string } | null = null;
-  try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (user) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("email, role")
-        .eq("id", user.id)
-        .single<{ email: string; role: UserRole }>();
-      headerUser = {
-        email: profile?.email || user.email || "",
-        role: profile?.role,
-      };
-    }
-  } catch {
-    // Supabase not configured yet
-  }
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+  const supabaseAnon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
 
   return (
-    <NextIntlClientProvider locale={locale} messages={messages}>
-      <Header user={headerUser} />
-      <div className="flex min-h-screen flex-col">
-        <main className="flex-1">{children}</main>
-        <Footer />
-      </div>
-    </NextIntlClientProvider>
+    <html lang={locale} className="dark" suppressHydrationWarning>
+      <head>
+        <GoogleAnalytics />
+        <meta name="zippr-supabase-url" content={supabaseUrl} />
+        <meta name="zippr-supabase-anon" content={supabaseAnon} />
+        <meta name="zippr-app-url" content={appUrl} />
+      </head>
+      <body className="min-h-screen bg-black antialiased">
+        <SiteJsonLd locale={locale} />
+        <ChunkLoadRecovery />
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <Header />
+          <div className="flex min-h-screen flex-col">
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </div>
+        </NextIntlClientProvider>
+      </body>
+    </html>
   );
 }

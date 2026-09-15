@@ -26,18 +26,16 @@ import {
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { LogoutButton } from "@/components/auth/logout-button";
+import { useUser } from "@/hooks/use-user";
 
-interface HeaderProps {
-  user?: { email: string; role?: string } | null;
-}
-
-export function Header({ user }: HeaderProps) {
+export function Header() {
   const t = useTranslations("common");
   const tTools = useTranslations("tools");
   const locale = useLocale() as Locale;
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { user } = useUser();
 
   const toolLinks = [
     { href: "/tools/share", label: tTools("navShare"), icon: Upload },

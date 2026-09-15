@@ -7,14 +7,16 @@ import { canUpload, getExpiryDate, getStorageLimitForPlan } from "@/lib/plans";
 import { resolveUniqueSlug, createDefaultUploadSlug } from "@/lib/slug";
 import { isValidSlug, slugify } from "@/lib/utils";
 import type { PlanType } from "@/types/database";
+import { createUploadToken } from "@/lib/upload-token";
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { fileName, fileSize, mimeType, customSlug, customName, useCustomSlug } = body;
 
-    if (!fileName || !fileSize) {
-      return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+    const numericFileSize = Number(fileSize);
+    if (!fileName || !Number.isFinite(numericFileSize) || numericFileSize <= 0) {
+      return NextResponse.json({ error: "invalid_file" }, { status: 400 });
     }
 
     const userId = await getUserIdFromRequest(request);
@@ -52,7 +54,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const uploadCheck = canUpload(storageUsed, storageLimit, fileSize);
+    const uploadCheck = canUpload(storageUsed, storageLimit, numericFileSize);
     if (!uploadCheck.allowed) {
       return NextResponse.json({ error: uploadCheck.reason }, { status: 403 });
     }
@@ -86,7 +88,7 @@ export async function POST(request: NextRequest) {
       slug: finalSlug,
       original_name: fileName,
       custom_name: customName || fileName,
-      file_size: fileSize,
+      file_size: numericFileSize,
       mime_type: safeMime,
       r2_key: r2Key,
       expires_at: expiresAt?.toISOString() || null,
@@ -99,8 +101,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "db_error" }, { status: 500 });
     }
 
+    const uploadToken = createUploadToken(fileId, userId);
+
     return NextResponse.json({
       fileId,
+      uploadToken,
       presignedUrl,
       r2Key,
       slug: finalSlug,

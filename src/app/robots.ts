@@ -1,14 +1,17 @@
 import type { MetadataRoute } from "next";
-
-const BASE = process.env.NEXT_PUBLIC_APP_URL || "https://zippr.ink";
+import { SITE_URL } from "@/lib/seo";
 
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/admin", "/dashboard", "/api/", "/auth/"],
+      disallow: [
+        "/admin", "/dashboard", "/api/", "/auth/", "/login", "/register",
+        "/*/admin", "/*/dashboard", "/*/login", "/*/register", "/*/share/",
+      ],
     },
-    sitemap: `${BASE}/sitemap.xml`,
+    sitemap: `${SITE_URL}/sitemap.xml`,
+    host: SITE_URL,
   };
 }
