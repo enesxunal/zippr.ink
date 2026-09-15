@@ -1,3 +1,5 @@
+import { SEO_BLOG_POSTS } from "./seo-posts";
+
 export type BlogPost = {
   slug: string;
   title: string;
@@ -6,9 +8,15 @@ export type BlogPost = {
   readMinutes: number;
   tags: string[];
   sections: { heading?: string; paragraphs: string[] }[];
+  updated?: string;
+  keywords?: string[];
+  cluster?: "pdf" | "share" | "compress" | "convert" | "general";
+  faq?: { q: string; a: string }[];
+  toolHref?: string;
+  toolLabel?: string;
 };
 
-export const BLOG_POSTS: BlogPost[] = [
+const CORE_BLOG_POSTS: BlogPost[] = [
   {
     slug: "buyuk-dosya-paylasimi-rehberi",
     title: "Büyük Dosya Paylaşımı: 2026 Pratik Rehberi",
@@ -199,6 +207,8 @@ export const BLOG_POSTS: BlogPost[] = [
     ],
   },
 ];
+
+export const BLOG_POSTS: BlogPost[] = [...SEO_BLOG_POSTS, ...CORE_BLOG_POSTS];
 
 export function getPost(slug: string) {
   return BLOG_POSTS.find((p) => p.slug === slug);
