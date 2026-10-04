@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-export const SITE_URL = (process.env.NEXT_PUBLIC_APP_URL || "https://zippr.ink").replace(/\/$/, "");
+export const SITE_URL = "https://www.zippr.ink";
 export const SEO_LOCALES = ["tr", "en", "de"] as const;
 export type SeoLocale = (typeof SEO_LOCALES)[number];
 

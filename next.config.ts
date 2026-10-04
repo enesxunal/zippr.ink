@@ -26,16 +26,6 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  async redirects() {
-    return [
-      {
-        source: "/:path*",
-        has: [{ type: "host", value: "www.zippr.ink" }],
-        destination: "https://zippr.ink/:path*",
-        permanent: true,
-      },
-    ];
-  },
   experimental: {
     // The app uses Route Handlers for uploads, not Server Actions. Keep this small to reduce DoS surface.
     serverActions: { bodySizeLimit: "2mb" },
