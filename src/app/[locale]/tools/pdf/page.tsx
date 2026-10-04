@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
-import { getTranslations } from "next-intl/server";
+import Link from "next/link";
+import { getLocale, getTranslations } from "next-intl/server";
 import { PdfWorkspace } from "@/components/tools/pdf-workspace";
+import { SEO_TOOL_LANDINGS } from "@/content/seo-tool-landings";
 import { pageSeo } from "@/lib/seo";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
@@ -9,7 +11,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 }
 
 export default async function PdfToolPage() {
-  const t = await getTranslations("tools");
+  const [t, locale] = await Promise.all([getTranslations("tools"), getLocale()]);
+  const relatedLandings = locale === "tr" ? SEO_TOOL_LANDINGS.filter((item) => item.mode === "pdf") : [];
 
   return (
     <div className="relative min-h-[calc(100vh-4rem)] overflow-hidden">
@@ -20,6 +23,23 @@ export default async function PdfToolPage() {
           <p className="mx-auto mt-3 max-w-xl text-white/60">{t("pdfSubtitle")}</p>
         </div>
         <PdfWorkspace />
+
+        {relatedLandings.length > 0 && (
+          <nav aria-label="İlgili PDF araçları" className="mx-auto mt-12 max-w-4xl">
+            <h2 className="text-lg font-semibold">İlgili PDF araçları</h2>
+            <div className="mt-4 flex flex-wrap gap-3">
+              {relatedLandings.map((item) => (
+                <Link
+                  key={item.slug}
+                  href={`/tools/${item.slug}`}
+                  className="rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-sm text-white/70 transition hover:border-white/20 hover:text-white"
+                >
+                  {item.h1}
+                </Link>
+              ))}
+            </div>
+          </nav>
+        )}
       </div>
     </div>
   );

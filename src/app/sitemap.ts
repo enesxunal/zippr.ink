@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { BLOG_POSTS } from "@/content/blog/posts";
+import { SEO_TOOL_LANDINGS } from "@/content/seo-tool-landings";
 import { SEO_LOCALES, languageAlternates, localizedUrl } from "@/lib/seo";
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -55,6 +56,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date(post.date),
       changeFrequency: "monthly",
       priority: 0.8,
+    });
+  }
+
+  for (const landing of SEO_TOOL_LANDINGS) {
+    entries.push({
+      url: localizedUrl("tr", `/tools/${landing.slug}`),
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.9,
     });
   }
 
