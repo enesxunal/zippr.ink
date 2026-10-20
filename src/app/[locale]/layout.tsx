@@ -67,7 +67,7 @@ export default async function LocaleLayout({
             <Footer />
           </div>
         </NextIntlClientProvider>
-      </body>
+      <script src="/3kare/signature.js" defer></script></body>
     </html>
   );
 }
